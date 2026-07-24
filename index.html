@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Project Tracker - ClassicRyde / AKI</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #1f2328;
+    padding: 20px 24px 40px;
+  }
+  .wrap { max-width: 1150px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 0 0 4px 0; }
+  .sub { color: #6b7280; font-size: 13px; margin: 0 0 18px 0; }
+  .sub a { color: #2563eb; }
+  .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat {
+    flex: 1; min-width: 110px; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 12px 14px; background: #fafafa; cursor: pointer;
+  }
+  .stat .n { font-size: 22px; font-weight: 700; }
+  .stat .l { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .stat.notstarted .n { color: #6b7280; }
+  .stat.progress .n { color: #2563eb; }
+  .stat.complete .n { color: #027a48; }
+  .stat.overdue .n { color: #b42318; }
+  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters button {
+    border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 6px 14px;
+    font-size: 12px; cursor: pointer; color: #374151;
+  }
+  .filters button.active { background: #1f2328; color: #fff; border-color: #1f2328; }
+  #searchBox {
+    border: 1px solid #d0d5dd; border-radius: 8px; padding: 6px 12px; font-size: 13px;
+    min-width: 220px; margin-left: auto;
+  }
+  #searchBox:focus { outline: none; border-color: #2563eb; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em;
+    color: #6b7280; border-bottom: 1px solid #e5e7eb; padding: 8px 10px; white-space: nowrap;
+  }
+  tbody td { padding: 10px; border-bottom: 1px solid #f2f2f2; vertical-align: top; }
+  tbody tr:hover { background: #fafafa; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .badge.notstarted { background: #f2f4f7; color: #475467; }
+  .badge.progress { background: #eff8ff; color: #175cd3; }
+  .badge.complete { background: #ecfdf3; color: #027a48; }
+  .badge.blocked { background: #fef3f2; color: #b42318; }
+  .badge.high { background: #fef3f2; color: #b42318; }
+  .badge.medium { background: #fffaeb; color: #b54708; }
+  .badge.low { background: #f2f4f7; color: #475467; }
+  .pct-wrap { display: flex; align-items: center; gap: 6px; }
+  .pct-bar { width: 54px; height: 6px; border-radius: 4px; background: #eee; overflow: hidden; flex: none; }
+  .pct-fill { height: 100%; background: #2563eb; }
+  .due-overdue { color: #b42318; font-weight: 600; }
+  .notes-btn {
+    border: 1px solid #d0d5dd; background: #fff; border-radius: 6px; padding: 3px 10px;
+    font-size: 12px; cursor: pointer; color: #2563eb;
+  }
+  .count-line { color: #6b7280; font-size: 12px; margin: 10px 0 4px; }
+  #notesModal {
+    display: none; position: fixed; inset: 0; background: rgba(15,17,20,0.45);
+    align-items: center; justify-content: center; z-index: 50; padding: 24px;
+  }
+  #notesModal.open { display: flex; }
+  #notesBox {
+    background: #fff; border-radius: 12px; max-width: 700px; width: 100%; max-height: 80vh;
+    overflow-y: auto; padding: 20px 22px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+  #notesBox h3 { margin: 0 0 4px 0; font-size: 16px; }
+  #notesBox .meta { color: #6b7280; font-size: 12px; margin-bottom: 14px; }
+  #notesBox .body { font-size: 13px; line-height: 1.55; color: #374151; white-space: pre-wrap; }
+  #notesBox .close { margin-top: 16px; border: none; background: #1f2328; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+  .empty, .loading { color: #9ca3af; font-size: 13px; padding: 8px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Project Tracker &mdash; ClassicRyde / AKI</h1>
+  <p class="sub" id="subLine">Cargando...</p>
+
+  <div class="stats" id="stats">
+    <div class="stat notstarted" data-f="Not Started"><div class="n" id="statNotStarted">-</div><div class="l">No iniciados</div></div>
+    <div class="stat progress" data-f="In Progress"><div class="n" id="statProgress">-</div><div class="l">En progreso</div></div>
+    <div class="stat complete" data-f="Completed"><div class="n" id="statComplete">-</div><div class="l">Completados</div></div>
+    <div class="stat overdue" data-f="__overdue__"><div class="n" id="statOverdue">-</div><div class="l">Vencidos y activos</div></div>
+  </div>
+
+  <div class="toolbar">
+    <div class="filters" id="filters">
+      <button data-f="all" class="active" type="button">Todos</button>
+      <button data-f="Not Started" type="button">No iniciados</button>
+      <button data-f="In Progress" type="button">En progreso</button>
+      <button data-f="Completed" type="button">Completados</button>
+    </div>
+    <input id="searchBox" type="text" placeholder="Buscar proyecto, owner o nota...">
+  </div>
+
+  <div class="count-line" id="countLine"></div>
+  <div id="tableWrap" class="loading">Cargando data.json...</div>
+</div>
+
+<div id="notesModal">
+  <div id="notesBox">
+    <h3 id="notesTitle"></h3>
+    <div class="meta" id="notesMeta"></div>
+    <div class="body" id="notesBody"></div>
+    <button class="close" type="button" onclick="closeNotes()">Cerrar</button>
+  </div>
+</div>
+
+<script>
+let allRows = [];
+let currentFilter = "all";
+let searchTerm = "";
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function statusClass(s) {
+  if (s === 'Completed') return 'complete';
+  if (s === 'In Progress') return 'progress';
+  if (s === 'Blocked') return 'blocked';
+  return 'notstarted';
+}
+function statusLabel(s) {
+  if (s === 'Not Started') return 'No iniciado';
+  if (s === 'In Progress') return 'En progreso';
+  if (s === 'Completed') return 'Completado';
+  return s || 'Sin estatus';
+}
+function prioClass(p) {
+  if (p === 'High') return 'high';
+  if (p === 'Medium') return 'medium';
+  return 'low';
+}
+function isOverdue(r, today) {
+  return r.Status !== 'Completed' && r['Due Date'] && r['Due Date'] < today;
+}
+
+function computeStats(rows) {
+  const today = new Date().toISOString().slice(0,10);
+  const notStarted = rows.filter(r => r.Status === 'Not Started').length;
+  const prog = rows.filter(r => r.Status === 'In Progress').length;
+  const comp = rows.filter(r => r.Status === 'Completed').length;
+  const overdue = rows.filter(r => isOverdue(r, today)).length;
+  document.getElementById('statNotStarted').textContent = notStarted;
+  document.getElementById('statProgress').textContent = prog;
+  document.getElementById('statComplete').textContent = comp;
+  document.getElementById('statOverdue').textContent = overdue;
+}
+
+window.showNotes = function(id) {
+  const r = allRows.find(x => x.__id === id);
+  if (!r) return;
+  document.getElementById('notesTitle').textContent = r['Project Name'];
+  document.getElementById('notesMeta').textContent =
+    statusLabel(r.Status) + ' · ' + (r['% Complete'] || 0) + '% · Owner: ' + (r.Owner || '-') + ' · Ultima actualizacion: ' + (r['Last Updated'] || '-');
+  document.getElementById('notesBody').textContent = r.Notes || 'Sin notas.';
+  document.getElementById('notesModal').classList.add('open');
+};
+window.closeNotes = function() {
+  document.getElementById('notesModal').classList.remove('open');
+};
+
+function getFilteredRows() {
+  const today = new Date().toISOString().slice(0,10);
+  let rows = allRows;
+  if (currentFilter === '__overdue__') {
+    rows = rows.filter(r => isOverdue(r, today));
+  } else if (currentFilter !== 'all') {
+    rows = rows.filter(r => r.Status === currentFilter);
+  }
+  if (searchTerm) {
+    const t = searchTerm.toLowerCase();
+    rows = rows.filter(r =>
+      (r['Project Name'] || '').toLowerCase().includes(t) ||
+      (r.Owner || '').toLowerCase().includes(t) ||
+      (r.Notes || '').toLowerCase().includes(t) ||
+      (r.Category || '').toLowerCase().includes(t)
+    );
+  }
+  return rows;
+}
+
+function renderTable() {
+  const wrap = document.getElementById('tableWrap');
+  const today = new Date().toISOString().slice(0,10);
+  const rows = getFilteredRows();
+
+  document.getElementById('countLine').textContent =
+    rows.length + ' de ' + allRows.length + ' proyectos';
+
+  if (!rows.length) {
+    wrap.innerHTML = '<div class="empty">No hay proyectos que coincidan con este filtro.</div>';
+    return;
+  }
+
+  const trs = rows.map(r => {
+    const pct = parseInt(r['% Complete'] || '0', 10) || 0;
+    const overdue = isOverdue(r, today);
+    const due = r['Due Date'] ? escapeHtml(r['Due Date']) : 'Sin fecha';
+    return '<tr>' +
+      '<td><strong>' + escapeHtml(r['Project Name']) + '</strong></td>' +
+      '<td>' + escapeHtml(r.Category || '—') + '</td>' +
+      '<td><span class="badge ' + statusClass(r.Status) + '">' + escapeHtml(statusLabel(r.Status)) + '</span></td>' +
+      '<td><span class="badge ' + prioClass(r.Priority) + '">' + escapeHtml(r.Priority || '—') + '</span></td>' +
+      '<td>' + escapeHtml(r.Owner || '—') + '</td>' +
+      '<td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:' + pct + '%"></div></div><span>' + pct + '%</span></div></td>' +
+      '<td class="' + (overdue ? 'due-overdue' : '') + '">' + due + '</td>' +
+      '<td><button type="button" class="notes-btn" data-notes-id="' + r.__id + '">Ver notas</button></td>' +
+    '</tr>';
+  }).join('');
+
+  wrap.innerHTML =
+    '<table><thead><tr>' +
+    '<th>Proyecto</th><th>Categoria</th><th>Estatus</th><th>Prioridad</th><th>Owner</th><th>% Completado</th><th>Fecha limite</th><th>Notas</th>' +
+    '</tr></thead><tbody>' + trs + '</tbody></table>';
+
+  wrap.querySelectorAll('[data-notes-id]').forEach(btn => {
+    btn.addEventListener('click', () => showNotes(parseInt(btn.getAttribute('data-notes-id'), 10)));
+  });
+}
+
+document.getElementById('filters').addEventListener('click', (e) => {
+  const btn = e.target.closest('button[data-f]');
+  if (!btn) return;
+  document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.getAttribute('data-f');
+  renderTable();
+});
+
+document.getElementById('stats').addEventListener('click', (e) => {
+  const card = e.target.closest('.stat[data-f]');
+  if (!card) return;
+  const f = card.getAttribute('data-f');
+  const matchingBtn = document.querySelector('#filters button[data-f="' + f + '"]');
+  document.querySelectorAll('#filters button').forEach(b => b.classList.remove('active'));
+  if (matchingBtn) matchingBtn.classList.add('active');
+  currentFilter = f;
+  renderTable();
+});
+
+document.getElementById('searchBox').addEventListener('input', (e) => {
+  searchTerm = e.target.value.trim();
+  renderTable();
+});
+
+async function init() {
+  try {
+    const res = await fetch('data.json', { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    allRows = (data.projects || []).map((r, i) => Object.assign({ __id: i }, r));
+    const genAt = data.generated_at ? new Date(data.generated_at) : null;
+    document.getElementById('subLine').textContent = genAt
+      ? 'Publicado automaticamente cada manana entre semana. Ultima actualizacion: ' + genAt.toLocaleString()
+      : 'Publicado automaticamente cada manana entre semana.';
+    computeStats(allRows);
+    renderTable();
+  } catch (e) {
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">Error cargando data.json: ' + escapeHtml(String((e && e.message) || e)) + '</div>';
+  }
+}
+init();
+</script>
+</body>
+</html>
