@@ -13,7 +13,7 @@
     color: #1f2328;
     padding: 20px 24px 40px;
   }
-  .wrap { max-width: 1150px; margin: 0 auto; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
   h1 { font-size: 20px; margin: 0 0 4px 0; }
   .sub { color: #6b7280; font-size: 13px; margin: 0 0 18px 0; }
   .sub a { color: #2563eb; }
@@ -35,11 +35,11 @@
     font-size: 12px; cursor: pointer; color: #374151;
   }
   .filters button.active { background: #1f2328; color: #fff; border-color: #1f2328; }
-  #searchBox {
+  #categoryFilter, #searchBox {
     border: 1px solid #d0d5dd; border-radius: 8px; padding: 6px 12px; font-size: 13px;
-    min-width: 220px; margin-left: auto;
   }
-  #searchBox:focus { outline: none; border-color: #2563eb; }
+  #searchBox { min-width: 220px; margin-left: auto; }
+  #categoryFilter:focus, #searchBox:focus { outline: none; border-color: #2563eb; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em;
@@ -55,9 +55,17 @@
   .badge.high { background: #fef3f2; color: #b42318; }
   .badge.medium { background: #fffaeb; color: #b54708; }
   .badge.low { background: #f2f4f7; color: #475467; }
+  .badge.cat-admin { background: #f4f3ff; color: #5925dc; }
+  .badge.cat-finance { background: #ecfdf3; color: #027a48; }
+  .badge.cat-ops { background: #eff8ff; color: #175cd3; }
+  .badge.cat-hr { background: #fff6ed; color: #b93815; }
+  .badge.cat-marketing { background: #fdf2fa; color: #c11574; }
+  .badge.cat-partners { background: #f0fdfa; color: #0f766e; }
+  .badge.cat-other { background: #f2f4f7; color: #475467; }
   .pct-wrap { display: flex; align-items: center; gap: 6px; }
   .pct-bar { width: 54px; height: 6px; border-radius: 4px; background: #eee; overflow: hidden; flex: none; }
   .pct-fill { height: 100%; background: #2563eb; }
+  .pct-note { font-size: 10px; color: #9ca3af; }
   .due-overdue { color: #b42318; font-weight: 600; }
   .notes-btn {
     border: 1px solid #d0d5dd; background: #fff; border-radius: 6px; padding: 3px 10px;
@@ -75,6 +83,12 @@
   }
   #notesBox h3 { margin: 0 0 4px 0; font-size: 16px; }
   #notesBox .meta { color: #6b7280; font-size: 12px; margin-bottom: 14px; }
+  #notesBox .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: #9ca3af; margin: 14px 0 6px; }
+  #notesBox .section-label:first-of-type { margin-top: 0; }
+  #notesBox .subtask-list { list-style: none; padding: 0; margin: 0; }
+  #notesBox .subtask-list li { font-size: 13px; padding: 3px 0; color: #374151; }
+  #notesBox .subtask-list li.done { color: #027a48; }
+  #notesBox .subtask-list li .box { display: inline-block; width: 16px; }
   #notesBox .body { font-size: 13px; line-height: 1.55; color: #374151; white-space: pre-wrap; }
   #notesBox .close { margin-top: 16px; border: none; background: #1f2328; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
   .empty, .loading { color: #9ca3af; font-size: 13px; padding: 8px 0; }
@@ -99,6 +113,7 @@
       <button data-f="In Progress" type="button">En progreso</button>
       <button data-f="Completed" type="button">Completados</button>
     </div>
+    <select id="categoryFilter"><option value="all">Todas las categorias</option></select>
     <input id="searchBox" type="text" placeholder="Buscar proyecto, owner o nota...">
   </div>
 
@@ -110,6 +125,8 @@
   <div id="notesBox">
     <h3 id="notesTitle"></h3>
     <div class="meta" id="notesMeta"></div>
+    <div id="subtaskSection"></div>
+    <div class="section-label" id="notesLabel" style="display:none;">Notas</div>
     <div class="body" id="notesBody"></div>
     <button class="close" type="button" onclick="closeNotes()">Cerrar</button>
   </div>
@@ -118,10 +135,34 @@
 <script>
 let allRows = [];
 let currentFilter = "all";
+let currentCategory = "all";
 let searchTerm = "";
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// Subtareas column format: "[x] item one; [ ] item two; [x] item three"
+function parseSubtasks(s) {
+  if (!s || !s.trim()) return [];
+  return s.split(';').map(part => part.trim()).filter(Boolean).map(part => {
+    const done = /^\[x\]/i.test(part);
+    const text = part.replace(/^\[[ xX]\]\s*/, '');
+    return { done, text };
+  });
+}
+
+function pctFromSubtasks(items) {
+  if (!items.length) return null;
+  const done = items.filter(i => i.done).length;
+  return Math.round((done / items.length) * 100);
+}
+
+function effectivePct(r) {
+  const items = parseSubtasks(r.Subtareas);
+  const fromSub = pctFromSubtasks(items);
+  if (fromSub !== null) return fromSub;
+  return parseInt(r['% Complete'] || '0', 10) || 0;
 }
 
 function statusClass(s) {
@@ -141,6 +182,17 @@ function prioClass(p) {
   if (p === 'Medium') return 'medium';
   return 'low';
 }
+const CATEGORY_CLASS = {
+  'Administration': 'cat-admin',
+  'Finance': 'cat-finance',
+  'Operations': 'cat-ops',
+  'Recruitment & HR': 'cat-hr',
+  'Marketing': 'cat-marketing',
+  'Partnerships & Compliance': 'cat-partners'
+};
+function catClass(c) {
+  return CATEGORY_CLASS[c] || 'cat-other';
+}
 function isOverdue(r, today) {
   return r.Status !== 'Completed' && r['Due Date'] && r['Due Date'] < today;
 }
@@ -157,13 +209,37 @@ function computeStats(rows) {
   document.getElementById('statOverdue').textContent = overdue;
 }
 
+function populateCategoryFilter(rows) {
+  const sel = document.getElementById('categoryFilter');
+  const cats = Array.from(new Set(rows.map(r => r.Category).filter(Boolean))).sort();
+  cats.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
 window.showNotes = function(id) {
   const r = allRows.find(x => x.__id === id);
   if (!r) return;
+  const items = parseSubtasks(r.Subtareas);
+  const pct = effectivePct(r);
   document.getElementById('notesTitle').textContent = r['Project Name'];
   document.getElementById('notesMeta').textContent =
-    statusLabel(r.Status) + ' · ' + (r['% Complete'] || 0) + '% · Owner: ' + (r.Owner || '-') + ' · Ultima actualizacion: ' + (r['Last Updated'] || '-');
-  document.getElementById('notesBody').textContent = r.Notes || 'Sin notas.';
+    statusLabel(r.Status) + ' · ' + (r.Category || 'Sin categoria') + ' · ' + pct + '% · Owner: ' + (r.Owner || '-') + ' · Ultima actualizacion: ' + (r['Last Updated'] || '-');
+
+  const subSection = document.getElementById('subtaskSection');
+  if (items.length) {
+    subSection.innerHTML = '<div class="section-label">Subtareas (' + items.filter(i=>i.done).length + '/' + items.length + ')</div>' +
+      '<ul class="subtask-list">' + items.map(it =>
+        '<li class="' + (it.done ? 'done' : '') + '"><span class="box">' + (it.done ? '☑' : '☐') + '</span>' + escapeHtml(it.text) + '</li>'
+      ).join('') + '</ul>';
+  } else {
+    subSection.innerHTML = '';
+  }
+  document.getElementById('notesLabel').style.display = r.Notes ? 'block' : 'none';
+  document.getElementById('notesBody').textContent = r.Notes || (items.length ? '' : 'Sin notas.');
   document.getElementById('notesModal').classList.add('open');
 };
 window.closeNotes = function() {
@@ -177,6 +253,9 @@ function getFilteredRows() {
     rows = rows.filter(r => isOverdue(r, today));
   } else if (currentFilter !== 'all') {
     rows = rows.filter(r => r.Status === currentFilter);
+  }
+  if (currentCategory !== 'all') {
+    rows = rows.filter(r => r.Category === currentCategory);
   }
   if (searchTerm) {
     const t = searchTerm.toLowerCase();
@@ -204,24 +283,26 @@ function renderTable() {
   }
 
   const trs = rows.map(r => {
-    const pct = parseInt(r['% Complete'] || '0', 10) || 0;
+    const pct = effectivePct(r);
+    const subCount = parseSubtasks(r.Subtareas).length;
     const overdue = isOverdue(r, today);
     const due = r['Due Date'] ? escapeHtml(r['Due Date']) : 'Sin fecha';
     return '<tr>' +
       '<td><strong>' + escapeHtml(r['Project Name']) + '</strong></td>' +
-      '<td>' + escapeHtml(r.Category || '—') + '</td>' +
+      '<td><span class="badge ' + catClass(r.Category) + '">' + escapeHtml(r.Category || 'Sin categoria') + '</span></td>' +
       '<td><span class="badge ' + statusClass(r.Status) + '">' + escapeHtml(statusLabel(r.Status)) + '</span></td>' +
       '<td><span class="badge ' + prioClass(r.Priority) + '">' + escapeHtml(r.Priority || '—') + '</span></td>' +
       '<td>' + escapeHtml(r.Owner || '—') + '</td>' +
-      '<td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:' + pct + '%"></div></div><span>' + pct + '%</span></div></td>' +
+      '<td><div class="pct-wrap"><div class="pct-bar"><div class="pct-fill" style="width:' + pct + '%"></div></div><span>' + pct + '%</span></div>' +
+        (subCount ? '<div class="pct-note">' + subCount + ' subtareas</div>' : '') + '</td>' +
       '<td class="' + (overdue ? 'due-overdue' : '') + '">' + due + '</td>' +
-      '<td><button type="button" class="notes-btn" data-notes-id="' + r.__id + '">Ver notas</button></td>' +
+      '<td><button type="button" class="notes-btn" data-notes-id="' + r.__id + '">Ver detalle</button></td>' +
     '</tr>';
   }).join('');
 
   wrap.innerHTML =
     '<table><thead><tr>' +
-    '<th>Proyecto</th><th>Categoria</th><th>Estatus</th><th>Prioridad</th><th>Owner</th><th>% Completado</th><th>Fecha limite</th><th>Notas</th>' +
+    '<th>Proyecto</th><th>Categoria</th><th>Estatus</th><th>Prioridad</th><th>Owner</th><th>% Completado</th><th>Fecha limite</th><th>Detalle</th>' +
     '</tr></thead><tbody>' + trs + '</tbody></table>';
 
   wrap.querySelectorAll('[data-notes-id]').forEach(btn => {
@@ -249,6 +330,11 @@ document.getElementById('stats').addEventListener('click', (e) => {
   renderTable();
 });
 
+document.getElementById('categoryFilter').addEventListener('change', (e) => {
+  currentCategory = e.target.value;
+  renderTable();
+});
+
 document.getElementById('searchBox').addEventListener('input', (e) => {
   searchTerm = e.target.value.trim();
   renderTable();
@@ -264,6 +350,7 @@ async function init() {
     document.getElementById('subLine').textContent = genAt
       ? 'Publicado automaticamente cada manana entre semana. Ultima actualizacion: ' + genAt.toLocaleString()
       : 'Publicado automaticamente cada manana entre semana.';
+    populateCategoryFilter(allRows);
     computeStats(allRows);
     renderTable();
   } catch (e) {
