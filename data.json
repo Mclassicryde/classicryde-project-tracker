@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-27T17:26:27.219784Z",
+  "generated_at": "2026-07-27T17:55:02.542574Z",
   "projects": [
     {
       "Project Name": "Ads Management - AKI and Classic Ryde",
       "Category": "Marketing",
-      "Status": "In Progress",
+      "Status": "Completed",
       "Priority": "Medium",
       "Owner": "Manuel ",
       "Start Date": "2026-06-01",
@@ -121,7 +121,7 @@
     {
       "Project Name": "Driver Connect - Re-engagement Campaign",
       "Category": "Operations",
-      "Status": "In Progress",
+      "Status": "Completed",
       "Priority": "High",
       "Owner": "Manuel",
       "Start Date": "2026-04-15",
