@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-27T14:57:46.693699Z",
+  "generated_at": "2026-07-27T17:26:27.219784Z",
   "projects": [
     {
       "Project Name": "Ads Management - AKI and Classic Ryde",
@@ -7,7 +7,7 @@
       "Status": "In Progress",
       "Priority": "Medium",
       "Owner": "Manuel ",
-      "Start Date": "2026-08-01",
+      "Start Date": "2026-06-01",
       "Due Date": "2026-07-15",
       "% Complete": "100",
       "Last Updated": "2026-06-26",
@@ -151,7 +151,7 @@
       "Priority": "High",
       "Owner": "Chanel / Manuel",
       "Start Date": "2026-07-10",
-      "Due Date": "",
+      "Due Date": "2026-08-10",
       "% Complete": "75",
       "Last Updated": "2026-07-27",
       "Notes": "Tracker publicado en GitHub Pages. Falta construir la vista de roadmap interactiva conectada al tracker (boton pedido por Chanel para el 27 de julio) y definir fechas de inicio reales para los proyectos con fecha placeholder.",
@@ -241,7 +241,7 @@
       "Status": "In Progress",
       "Priority": "Medium",
       "Owner": "Manuel ",
-      "Start Date": "2026-07-15",
+      "Start Date": "2026-07-05",
       "Due Date": "2026-07-30",
       "% Complete": "89",
       "Last Updated": "2026-07-24",
@@ -255,7 +255,7 @@
       "Priority": "Medium",
       "Owner": "Manuel",
       "Start Date": "2026-07-01",
-      "Due Date": "",
+      "Due Date": "2026-07-30",
       "% Complete": "100",
       "Last Updated": "2026-07-27",
       "Notes": "Script de conteo diario funcionando. Reporte mensual de julio publicado; Anderson Flores alcanzo el bono de referido.",
