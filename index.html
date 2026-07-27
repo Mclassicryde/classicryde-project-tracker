@@ -1,100 +1,416 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Project Tracker - ClassicRyde / AKI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Tracker &amp; Roadmap - ClassicRyde / AKI</title>
 <style>
+
   :root { color-scheme: light; }
   * { box-sizing: border-box; }
-  body {
+  html, body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .tabbar {
+    display: flex; gap: 6px; padding: 14px 20px 0; background: #fff; border-bottom: 2px solid #E7E9F0;
+    position: sticky; top: 0; z-index: 40;
+  }
+  .tabbar button {
+    border: none; background: none; padding: 10px 18px; font-size: 14px; font-weight: 700;
+    color: #6b7280; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+    font-family: inherit;
+  }
+  .tabbar button.active { color: #16213E; border-bottom-color: #16213E; }
+  .tabbar button:hover { color: #16213E; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+/* ---- Lista/Tracker view (scoped .app-lista) ---- */
+.app-lista { color-scheme: light; }
+.app-lista * { box-sizing: border-box; }
+.app-lista {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     background: #ffffff;
     color: #1f2328;
     padding: 20px 24px 40px;
   }
-  .wrap { max-width: 1200px; margin: 0 auto; }
-  h1 { font-size: 20px; margin: 0 0 4px 0; }
-  .sub { color: #6b7280; font-size: 13px; margin: 0 0 18px 0; }
-  .sub a { color: #2563eb; }
-  .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat {
+.app-lista .wrap { max-width: 1200px; margin: 0 auto; }
+.app-lista h1 { font-size: 20px; margin: 0 0 4px 0; }
+.app-lista .sub { color: #6b7280; font-size: 13px; margin: 0 0 18px 0; }
+.app-lista .sub a { color: #2563eb; }
+.app-lista .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.app-lista .stat {
     flex: 1; min-width: 110px; border: 1px solid #e5e7eb; border-radius: 10px;
     padding: 12px 14px; background: #fafafa; cursor: pointer;
   }
-  .stat .n { font-size: 22px; font-weight: 700; }
-  .stat .l { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .stat.notstarted .n { color: #6b7280; }
-  .stat.progress .n { color: #2563eb; }
-  .stat.complete .n { color: #027a48; }
-  .stat.overdue .n { color: #b42318; }
-  .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
-  .filters button {
+.app-lista .stat .n { font-size: 22px; font-weight: 700; }
+.app-lista .stat .l { font-size: 12px; color: #6b7280; margin-top: 2px; }
+.app-lista .stat.notstarted .n { color: #6b7280; }
+.app-lista .stat.progress .n { color: #2563eb; }
+.app-lista .stat.complete .n { color: #027a48; }
+.app-lista .stat.overdue .n { color: #b42318; }
+.app-lista .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+.app-lista .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-lista .filters button {
     border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 6px 14px;
     font-size: 12px; cursor: pointer; color: #374151;
   }
-  .filters button.active { background: #1f2328; color: #fff; border-color: #1f2328; }
-  #categoryFilter, #searchBox {
+.app-lista .filters button.active { background: #1f2328; color: #fff; border-color: #1f2328; }
+.app-lista #categoryFilter, .app-lista #searchBox {
     border: 1px solid #d0d5dd; border-radius: 8px; padding: 6px 12px; font-size: 13px;
   }
-  #searchBox { min-width: 220px; margin-left: auto; }
-  #categoryFilter:focus, #searchBox:focus { outline: none; border-color: #2563eb; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th {
+.app-lista #searchBox { min-width: 220px; margin-left: auto; }
+.app-lista #categoryFilter:focus, .app-lista #searchBox:focus { outline: none; border-color: #2563eb; }
+.app-lista table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.app-lista thead th {
     text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.02em;
     color: #6b7280; border-bottom: 1px solid #e5e7eb; padding: 8px 10px; white-space: nowrap;
   }
-  tbody td { padding: 10px; border-bottom: 1px solid #f2f2f2; vertical-align: top; }
-  tbody tr:hover { background: #fafafa; }
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
-  .badge.notstarted { background: #f2f4f7; color: #475467; }
-  .badge.progress { background: #eff8ff; color: #175cd3; }
-  .badge.complete { background: #ecfdf3; color: #027a48; }
-  .badge.blocked { background: #fef3f2; color: #b42318; }
-  .badge.high { background: #fef3f2; color: #b42318; }
-  .badge.medium { background: #fffaeb; color: #b54708; }
-  .badge.low { background: #f2f4f7; color: #475467; }
-  .badge.cat-admin { background: #f4f3ff; color: #5925dc; }
-  .badge.cat-finance { background: #ecfdf3; color: #027a48; }
-  .badge.cat-ops { background: #eff8ff; color: #175cd3; }
-  .badge.cat-hr { background: #fff6ed; color: #b93815; }
-  .badge.cat-marketing { background: #fdf2fa; color: #c11574; }
-  .badge.cat-partners { background: #f0fdfa; color: #0f766e; }
-  .badge.cat-other { background: #f2f4f7; color: #475467; }
-  .pct-wrap { display: flex; align-items: center; gap: 6px; }
-  .pct-bar { width: 54px; height: 6px; border-radius: 4px; background: #eee; overflow: hidden; flex: none; }
-  .pct-fill { height: 100%; background: #2563eb; }
-  .pct-note { font-size: 10px; color: #9ca3af; }
-  .due-overdue { color: #b42318; font-weight: 600; }
-  .notes-btn {
+.app-lista tbody td { padding: 10px; border-bottom: 1px solid #f2f2f2; vertical-align: top; }
+.app-lista tbody tr:hover { background: #fafafa; }
+.app-lista .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.app-lista .badge.notstarted { background: #f2f4f7; color: #475467; }
+.app-lista .badge.progress { background: #eff8ff; color: #175cd3; }
+.app-lista .badge.complete { background: #ecfdf3; color: #027a48; }
+.app-lista .badge.blocked { background: #fef3f2; color: #b42318; }
+.app-lista .badge.high { background: #fef3f2; color: #b42318; }
+.app-lista .badge.medium { background: #fffaeb; color: #b54708; }
+.app-lista .badge.low { background: #f2f4f7; color: #475467; }
+.app-lista .badge.cat-admin { background: #f4f3ff; color: #5925dc; }
+.app-lista .badge.cat-finance { background: #ecfdf3; color: #027a48; }
+.app-lista .badge.cat-ops { background: #eff8ff; color: #175cd3; }
+.app-lista .badge.cat-hr { background: #fff6ed; color: #b93815; }
+.app-lista .badge.cat-marketing { background: #fdf2fa; color: #c11574; }
+.app-lista .badge.cat-partners { background: #f0fdfa; color: #0f766e; }
+.app-lista .badge.cat-other { background: #f2f4f7; color: #475467; }
+.app-lista .pct-wrap { display: flex; align-items: center; gap: 6px; }
+.app-lista .pct-bar { width: 54px; height: 6px; border-radius: 4px; background: #eee; overflow: hidden; flex: none; }
+.app-lista .pct-fill { height: 100%; background: #2563eb; }
+.app-lista .pct-note { font-size: 10px; color: #9ca3af; }
+.app-lista .due-overdue { color: #b42318; font-weight: 600; }
+.app-lista .notes-btn {
     border: 1px solid #d0d5dd; background: #fff; border-radius: 6px; padding: 3px 10px;
     font-size: 12px; cursor: pointer; color: #2563eb;
   }
-  .count-line { color: #6b7280; font-size: 12px; margin: 10px 0 4px; }
-  #notesModal {
+.app-lista .count-line { color: #6b7280; font-size: 12px; margin: 10px 0 4px; }
+.app-lista #notesModal {
     display: none; position: fixed; inset: 0; background: rgba(15,17,20,0.45);
     align-items: center; justify-content: center; z-index: 50; padding: 24px;
   }
-  #notesModal.open { display: flex; }
-  #notesBox {
+.app-lista #notesModal.open { display: flex; }
+.app-lista #notesBox {
     background: #fff; border-radius: 12px; max-width: 700px; width: 100%; max-height: 80vh;
     overflow-y: auto; padding: 20px 22px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
   }
-  #notesBox h3 { margin: 0 0 4px 0; font-size: 16px; }
-  #notesBox .meta { color: #6b7280; font-size: 12px; margin-bottom: 14px; }
-  #notesBox .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: #9ca3af; margin: 14px 0 6px; }
-  #notesBox .section-label:first-of-type { margin-top: 0; }
-  #notesBox .subtask-list { list-style: none; padding: 0; margin: 0; }
-  #notesBox .subtask-list li { font-size: 13px; padding: 3px 0; color: #374151; }
-  #notesBox .subtask-list li.done { color: #027a48; }
-  #notesBox .subtask-list li .box { display: inline-block; width: 16px; }
-  #notesBox .body { font-size: 13px; line-height: 1.55; color: #374151; white-space: pre-wrap; }
-  #notesBox .close { margin-top: 16px; border: none; background: #1f2328; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
-  .empty, .loading { color: #9ca3af; font-size: 13px; padding: 8px 0; }
+.app-lista #notesBox h3 { margin: 0 0 4px 0; font-size: 16px; }
+.app-lista #notesBox .meta { color: #6b7280; font-size: 12px; margin-bottom: 14px; }
+.app-lista #notesBox .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: #9ca3af; margin: 14px 0 6px; }
+.app-lista #notesBox .section-label:first-of-type { margin-top: 0; }
+.app-lista #notesBox .subtask-list { list-style: none; padding: 0; margin: 0; }
+.app-lista #notesBox .subtask-list li { font-size: 13px; padding: 3px 0; color: #374151; }
+.app-lista #notesBox .subtask-list li.done { color: #027a48; }
+.app-lista #notesBox .subtask-list li .box { display: inline-block; width: 16px; }
+.app-lista #notesBox .body { font-size: 13px; line-height: 1.55; color: #374151; white-space: pre-wrap; }
+.app-lista #notesBox .close { margin-top: 16px; border: none; background: #1f2328; color: #fff; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.app-lista .empty, .app-lista .loading { color: #9ca3af; font-size: 13px; padding: 8px 0; }
+.app-lista .show-completed-toggle {
+    display: flex; align-items: center; gap: 6px; font-size: 13px; color: #374151;
+    cursor: pointer; white-space: nowrap;
+  }
+.app-lista .show-completed-toggle input { cursor: pointer; }
+
+/* ---- Roadmap view (scoped .app-roadmap) ---- */
+.app-roadmap {
+    color-scheme: light;
+    --navy: #16213E;
+    --ink: #10172A;
+    --green: #16C784;
+    --yellow: #FFB020;
+    --red: #FF4D5E;
+    --orange: #F97316;
+    --blue: #2563EB;
+    --gray: #6B7280;
+    --border: #E7E9F0;
+    --bg: #F4F6FB;
+  }
+.app-roadmap * { box-sizing: border-box; }
+.app-roadmap, .app-roadmap { max-width: 100%; overflow-x: hidden; }
+.app-roadmap {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Calibri, Arial, sans-serif;
+    background: #fff;
+    color: var(--ink);
+  }
+.app-roadmap .app { padding: 22px clamp(10px, 3vw, 26px) 60px; max-width: 100%; width: 100%; }
+.app-roadmap h1 { font-size: clamp(18px, 3vw, 23px); color: var(--navy); margin: 0 0 4px; font-weight: 800; letter-spacing: -.01em; }
+.app-roadmap .subtitle { color: var(--gray); font-size: 13px; margin: 0 0 18px; }
+.app-roadmap .summary-bar {
+    display: flex; align-items: center; gap: clamp(10px, 2vw, 20px);
+    background: linear-gradient(135deg, var(--navy), #24345c);
+    border-radius: 14px; padding: 16px 22px; margin-bottom: 20px; flex-wrap: wrap;
+    box-shadow: 0 8px 24px rgba(22,33,62,0.25);
+  }
+.app-roadmap .summary-bar .metric { display: flex; flex-direction: column; }
+.app-roadmap .summary-bar .metric .num { font-size: 25px; font-weight: 800; color: #fff; }
+.app-roadmap .summary-bar .metric .lbl { font-size: 11px; color: #B9C2DC; text-transform: uppercase; letter-spacing: .05em; }
+.app-roadmap .progress-track {
+    flex: 1; min-width: 160px; height: 12px; background: rgba(255,255,255,0.16); border-radius: 7px; overflow: hidden;
+  }
+.app-roadmap .progress-fill { height: 100%; background: linear-gradient(90deg, var(--green), #58e0ac); border-radius: 7px; transition: width .3s; }
+.app-roadmap .toolbar {
+    display: flex; gap: 10px 14px; margin-bottom: 14px; align-items: center; flex-wrap: wrap;
+    font-size: 12px; color: var(--gray);
+  }
+.app-roadmap .toolbar label { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.app-roadmap .toolbar select { font-size: 12.5px; padding: 5px 8px; border: 2px solid var(--border); border-radius: 7px; font-family: inherit; }
+.app-roadmap .toolbar .zoom-group { display: flex; align-items: center; gap: 4px; background: #fff; border: 2px solid var(--border); border-radius: 9px; padding: 3px; }
+.app-roadmap .toolbar .zoom-group button { padding: 5px 12px; }
+.app-roadmap .toolbar-sep { width: 1px; align-self: stretch; background: var(--border); margin: 0 2px; }
+.app-roadmap button {
+    font-family: inherit; font-size: 13px; cursor: pointer; border-radius: 9px; border: none;
+    background: var(--navy); color: #fff; padding: 9px 16px; font-weight: 700;
+  }
+.app-roadmap button.secondary { background: #fff; color: var(--navy); border: 2px solid var(--navy); }
+.app-roadmap button.link { background: none; border: none; color: var(--navy); padding: 4px 6px; font-weight: 700; text-decoration: underline; }
+.app-roadmap button.danger { background: #fff; color: var(--red); border: 2px solid var(--red); }
+.app-roadmap button.small { padding: 5px 10px; font-size: 12px; border-radius: 7px; }
+.app-roadmap button:hover { filter: brightness(1.08); }
+.app-roadmap .upcoming-panel { display: none; background: #fff; border: 1.5px solid var(--border); border-radius: 12px; padding: 6px 4px; margin-bottom: 14px; }
+.app-roadmap .upcoming-panel.show { display: block; }
+.app-roadmap .upcoming-row { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #f2f2f2; cursor: pointer; font-size: 12.5px; }
+.app-roadmap .upcoming-row:last-child { border-bottom: none; }
+.app-roadmap .upcoming-row:hover { background: var(--bg); }
+.app-roadmap .upcoming-row .up-date { font-weight: 800; color: var(--navy); min-width: 78px; }
+.app-roadmap .upcoming-row .up-proj { font-weight: 700; flex: 1; }
+.app-roadmap .upcoming-row .up-phase { color: var(--gray); }
+.app-roadmap .upcoming-row .up-tag { font-size: 10.5px; font-weight: 800; padding: 2px 8px; border-radius: 14px; color: #fff; }
+.app-roadmap .legend {
+    display: none; font-size: 12px; color: var(--gray); background: #fff; border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+  }
+.app-roadmap .legend.show { display: block; }
+.app-roadmap .legend-group { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; padding: 6px 0; }
+.app-roadmap .legend-group + .legend-group { border-top: 1px solid #f2f2f2; }
+.app-roadmap .legend-group-title { font-size: 10.5px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .04em; min-width: 108px; }
+.app-roadmap .legend span.item { display: inline-flex; align-items: center; gap: 6px; }
+.app-roadmap .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.app-roadmap .diamond { width: 10px; height: 10px; display: inline-block; transform: rotate(45deg); background: var(--navy); }
+.app-roadmap .flag { font-size: 13px; display: inline-block; line-height: 1; }
+.app-roadmap .legend-note { padding-top: 8px; border-top: 1px solid #f2f2f2; margin-top: 2px; font-size: 12px; }
+.app-roadmap #zoom-label { font-size: 12px; font-weight: 800; color: var(--navy); min-width: 42px; text-align: center; }
+.app-roadmap #project-search { font-size: 13px; padding: 8px 10px; border: 2px solid var(--border); border-radius: 9px; font-family: inherit; min-width: 180px; flex: 1 1 180px; max-width: 320px; }
+.app-roadmap .roadmap-viewport {
+    position: relative; overflow: hidden; border-radius: 16px; background: var(--bg); width: 100%;
+    height: 72vh; min-height: 460px; max-height: 760px; cursor: grab; touch-action: none;
+  }
+.app-roadmap .roadmap-viewport.dragging { cursor: grabbing; }
+.app-roadmap .diagram-pan { position: absolute; left: 0; top: 0; }
+.app-roadmap .diagram-scale { transform-origin: 0 0; }
+.app-roadmap .diagram { position: relative; }
+.app-roadmap .month-band {
+    position: absolute; top: 0; bottom: 0; border-left: 2px dashed #DCE1F0;
+  }
+.app-roadmap .month-lbl {
+    position: absolute; font-size: 12px; font-weight: 800; color: #9AA4C0; letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+.app-roadmap .spine { position: absolute; height: 32px; border-radius: 16px; background: linear-gradient(90deg,#c9d0e6,#aab4d6); box-shadow: inset 0 3px 6px rgba(0,0,0,0.1); }
+@keyframes pop-in {
+    from { opacity: 0; transform: translate(-50%,-50%) scale(.55); }
+    to { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  }
+.app-roadmap .deadline-node {
+    position: absolute; width: 22px; height: 22px; transform: translate(-50%,-50%) rotate(45deg);
+    border-radius: 5px; box-shadow: 0 5px 12px rgba(0,0,0,0.35); cursor: pointer; border: 3px solid #fff; z-index: 3;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+.app-roadmap .deadline-node:hover { box-shadow: 0 0 0 6px rgba(0,0,0,0.14); transform: translate(-50%,-50%) rotate(45deg) scale(1.15); }
+.app-roadmap .deadline-tag {
+    position: absolute; font-size: 10.5px; font-weight: 700; color: #fff; padding: 2px 8px; border-radius: 6px;
+    transform: translate(-50%, 0); white-space: nowrap; z-index: 3; box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  }
+.app-roadmap .milestone-node {
+    position: absolute; width: 15px; height: 15px; border-radius: 50%; transform: translate(-50%,-50%);
+    cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 3px 7px rgba(0,0,0,0.32); z-index: 3;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+.app-roadmap .milestone-node:hover { box-shadow: 0 0 0 6px rgba(0,0,0,0.14); transform: translate(-50%,-50%) scale(1.3); }
+.app-roadmap .milestone-badge {
+    position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--navy); color: #fff;
+    font-size: 8.5px; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    transform: translate(-50%,-50%); pointer-events: none; z-index: 4;
+  }
+.app-roadmap .goal-node {
+    position: absolute; width: 30px; height: 30px; transform: translate(-50%,-50%);
+    background: #7C3AED; border: 3px solid #fff; border-radius: 50%; cursor: pointer;
+    box-shadow: 0 6px 16px rgba(124,58,237,0.5); z-index: 5; transition: transform .15s ease;
+    display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px;
+    animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+.app-roadmap .goal-node:hover { transform: translate(-50%,-50%) scale(1.15); }
+.app-roadmap .goal-node.done { background: var(--blue); box-shadow: 0 4px 10px rgba(37,99,235,0.4); }
+.app-roadmap .goal-node.overdue { background: var(--orange); box-shadow: 0 4px 10px rgba(249,115,22,0.4); }
+.app-roadmap .goal-tag {
+    position: absolute; font-size: 11px; font-weight: 800; color: #fff; background: #7C3AED;
+    padding: 4px 10px; border-radius: 7px; transform: translate(-50%,0); white-space: nowrap; z-index: 5;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+  }
+.app-roadmap .goal-tag.done { background: var(--blue); }
+.app-roadmap .goal-tag.overdue { background: var(--orange); }
+.app-roadmap .goal-stem { position: absolute; width: 2px; background: #7C3AED; z-index: 4; }
+.app-roadmap .bubble {
+    position: absolute; transform: translate(-50%,-50%); width: 200px; border-radius: 20px;
+    padding: 15px 17px; cursor: pointer; color: #fff; box-shadow: 0 14px 34px rgba(0,0,0,0.32);
+    transition: transform .15s ease, box-shadow .15s ease; animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+.app-roadmap .bubble:hover { transform: translate(-50%,-50%) scale(1.06); box-shadow: 0 18px 40px rgba(0,0,0,0.4); }
+.app-roadmap .bubble .bname { font-size: 15px; font-weight: 800; line-height: 1.2; text-align: center; }
+.app-roadmap .bubble .bmeta { font-size: 11px; opacity: .92; margin-top: 3px; font-weight: 600; text-align: center; }
+.app-roadmap .bubble .bphases { display: flex; gap: 4px; margin-top: 9px; justify-content: center; }
+.app-roadmap .bubble .bphases i { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,0.28); display: block; }
+.app-roadmap .bubble .bphases i.done { background: #fff; }
+.app-roadmap .bubble .btasks {
+    position: absolute; top: -10px; right: -10px; background: #fff; color: var(--navy); font-size: 10.5px;
+    font-weight: 800; border-radius: 20px; padding: 3px 8px; box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+.app-roadmap .bubble .bbadges { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.app-roadmap .bubble .bpriority, .app-roadmap .bubble .bstatus {
+    display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .03em;
+    padding: 2px 8px; border-radius: 20px; color: #fff; text-transform: uppercase;
+  }
+.app-roadmap .bubble .bstatus { background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+@keyframes pulse-overdue {
+    0% { box-shadow: 0 0 0 0 rgba(249,115,22,0.55); }
+    70% { box-shadow: 0 0 0 9px rgba(249,115,22,0); }
+    100% { box-shadow: 0 0 0 0 rgba(249,115,22,0); }
+  }
+.app-roadmap .bubble .boverdue {
+    position: absolute; top: -10px; left: -10px; background: var(--orange); color: #fff; font-size: 10.5px;
+    font-weight: 800; border-radius: 20px; padding: 3px 9px; animation: pulse-overdue 1.8s infinite;
+  }
+.app-roadmap .today-marker { position: absolute; top: 0; width: 2px; z-index: 2;
+    background: repeating-linear-gradient(180deg, #16213E, #16213E 6px, transparent 6px, transparent 11px); }
+.app-roadmap .today-lbl { position: absolute; font-size: 10.5px; font-weight: 800; color: var(--navy); background: #fff;
+    padding: 2px 7px; border-radius: 5px; border: 1.5px solid var(--navy); transform: translate(-50%,0); white-space: nowrap; }
+.app-roadmap .overdue-banner {
+    display: none; background: #FFF7ED; border: 1.5px solid #FDBA74; color: #9A3412; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 14px; font-size: 13px; line-height: 1.5;
+  }
+.app-roadmap .overdue-banner.show { display: block; }
+.app-roadmap .overdue-banner .ov-header { font-weight: 800; margin-bottom: 6px; }
+.app-roadmap .overdue-banner .ov-list { margin: 0; padding-left: 20px; }
+.app-roadmap .overdue-banner .ov-list li { padding: 3px 0; }
+.app-roadmap .overdue-banner .ov-link { cursor: pointer; font-weight: 700; text-decoration: underline; }
+.app-roadmap .overdue-banner .ov-detail { font-weight: 400; text-decoration: none; color: #9A3412; opacity: 0.85; }
+.app-roadmap .empty-note { padding: 30px; text-align: center; color: var(--gray); font-size: 13px; }
+.app-roadmap .overlay {
+    display: none; position: fixed; inset: 0; background: rgba(16,23,42,0.55); z-index: 50;
+    align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto;
+  }
+.app-roadmap .overlay.open { display: flex; }
+.app-roadmap .modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 580px; padding: 22px 24px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+.app-roadmap .modal h2 { font-size: 17px; color: var(--navy); margin: 0 0 14px; font-weight: 800; }
+.app-roadmap .modal .close-x { float: right; background: none; border: none; color: var(--gray); font-size: 18px; font-weight: 400; padding: 0 4px; }
+.app-roadmap .field { margin-bottom: 12px; }
+.app-roadmap .field label { display: block; font-size: 12px; font-weight: 700; color: #444; margin-bottom: 4px; }
+.app-roadmap .field input[type=text], .app-roadmap .field input[type=date], .app-roadmap .field select, .app-roadmap .field textarea {
+    width: 100%; padding: 8px 10px; border: 2px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit;
+  }
+.app-roadmap .field textarea { resize: vertical; min-height: 44px; }
+.app-roadmap .row2 { display: flex; gap: 10px; }
+.app-roadmap .row2 > div { flex: 1; }
+.app-roadmap .phase-block { padding: 9px 0; border-bottom: 1px solid #f0f0f0; }
+.app-roadmap .phase-item { display: flex; align-items: center; gap: 8px; }
+.app-roadmap .phase-item input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; }
+.app-roadmap .phase-item .pinfo { flex: 1; }
+.app-roadmap .phase-item .pinfo input.ms-name { font-size: 13px; font-weight: 700; border: 1px solid transparent; background: transparent; padding: 3px 4px; border-radius: 5px; width: 100%; font-family: inherit; }
+.app-roadmap .phase-item .pinfo input.ms-name:hover, .app-roadmap .phase-item .pinfo input.ms-name:focus { border-color: var(--border); background: #fff; outline: none; }
+.app-roadmap .phase-item input[type=date] { width: 132px; }
+.app-roadmap .phase-item .ms-remove { background: none; border: none; color: #c62828; font-size: 15px; padding: 2px 5px; cursor: pointer; font-weight: 700; }
+.app-roadmap .add-milestone-row { margin-top: 10px; }
+.app-roadmap .subproj-row { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid #f0f0f0; }
+.app-roadmap .subproj-row input[type=text] { flex: 1; font-size: 13px; font-weight: 600; border: 1px solid transparent; background: transparent; padding: 5px 6px; border-radius: 5px; font-family: inherit; }
+.app-roadmap .subproj-row input[type=text]:hover, .app-roadmap .subproj-row input[type=text]:focus { border-color: var(--border); background: #fff; outline: none; }
+.app-roadmap .subproj-row select { font-size: 12px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+.app-roadmap .subproj-row input[type=date] { font-size: 12px; padding: 5px 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; width: 138px; flex: none; }
+.app-roadmap .subproj-row .dot { flex-shrink: 0; }
+.app-roadmap .subproj-row label.chk { display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--gray); white-space: nowrap; }
+.app-roadmap .subproj-row.subproj-row-nested { margin-left: 26px; border-left: 2px solid var(--border); padding-left: 10px; }
+.app-roadmap .subproj-nested-wrap { margin-bottom: 4px; }
+.app-roadmap .subproj-circle {
+    position: absolute; width: 104px; height: 104px; cursor: pointer;
+    transform: translate(-50%,-50%); z-index: 6; transition: transform .15s ease;
+    animation: pop-in .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+.app-roadmap .subproj-circle:hover { transform: translate(-50%,-50%) scale(1.09); }
+.app-roadmap .subproj-face {
+    width: 100%; height: 100%; border-radius: 50%; border: 3px solid #fff;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.38); display: flex; flex-direction: column; align-items: center;
+    justify-content: center; text-align: center; padding: 8px; color: #fff; overflow: hidden;
+  }
+.app-roadmap .subproj-circle .spn-name { font-size: 12px; font-weight: 800; line-height: 1.2; text-align: center; }
+.app-roadmap .subproj-circle .spn-status { font-size: 9px; font-weight: 700; opacity: .85; text-transform: uppercase; letter-spacing: .03em; margin-top: 3px; text-align: center; }
+.app-roadmap .subproj-circle.subproj-circle-nested .spn-status { font-size: 8px; margin-top: 2px; }
+.app-roadmap .subproj-circle .sp-tasks {
+    position: absolute; top: -8px; right: -8px; background: #fff; color: var(--navy); font-size: 9.5px;
+    font-weight: 800; border-radius: 20px; padding: 2px 7px; box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  }
+.app-roadmap .subproj-circle.subproj-circle-nested { width: 78px; height: 78px; }
+.app-roadmap .subproj-circle.subproj-circle-nested .spn-name { font-size: 10px; }
+.app-roadmap .subtask-wrap { margin: 6px 0 0 28px; }
+.app-roadmap .subtask-row { display: flex; align-items: center; gap: 7px; padding: 3px 0; font-size: 12px; }
+.app-roadmap .subtask-row input[type=checkbox] { width: 14px; height: 14px; }
+.app-roadmap .subtask-row .stxt { flex: 1; }
+.app-roadmap .subtask-row .stxt.done { text-decoration: line-through; color: #999; }
+.app-roadmap .subtask-add { display: flex; gap: 6px; margin-top: 5px; }
+.app-roadmap .subtask-add input { flex: 1; font-size: 12px; padding: 5px 8px; border: 2px solid var(--border); border-radius: 6px; font-family: inherit; }
+.app-roadmap .dep-list { font-size: 12px; margin: 6px 0 10px; }
+.app-roadmap .dep-list .dep-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px dashed #eee; }
+.app-roadmap .modal-actions { display: flex; justify-content: space-between; margin-top: 18px; }
+.app-roadmap small.hint { color: var(--gray); font-size: 11px; display:block; margin-top:2px; }
+.app-roadmap .info-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.app-roadmap .info-pill { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; color: #fff; }
+.app-roadmap .info-meta { color: var(--gray); font-size: 12.5px; margin-bottom: 14px; }
+.app-roadmap .info-phase-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid #f2f2f2; }
+.app-roadmap .info-phase-row .ic { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; font-weight: 800; }
+.app-roadmap .info-phase-row .ic.pending { background: #E7E9F0; color: #9AA4C0; }
+.app-roadmap .info-phase-row .txt { flex: 1; font-size: 13px; font-weight: 600; }
+.app-roadmap .info-phase-row .dt { font-size: 11.5px; color: var(--gray); }
+.app-roadmap .info-sub-list { margin: 2px 0 0 30px; }
+.app-roadmap .info-sub-row { font-size: 12px; color: #555; padding: 2px 0; }
+.app-roadmap .info-sub-row.done { text-decoration: line-through; color: #aaa; }
+.app-roadmap .info-empty { color: #999; font-size: 12px; }
+@media print {
+.app-roadmap .toolbar, .app-roadmap .legend, .app-roadmap .overlay { display: none !important; }
+.app-roadmap .roadmap-viewport { height: auto !important; max-height: none !important; overflow: visible !important; border: none; }
+.app-roadmap .diagram-pan { position: static !important; transform: none !important; }
+.app-roadmap .diagram-scale { transform: none !important; }
+.app-roadmap { background: #fff; }
+.app-roadmap .app { padding: 0; }
+}
+@media (max-width: 640px) {
+.app-roadmap .app { padding: 14px 10px 40px; }
+.app-roadmap .summary-bar { padding: 12px 14px; gap: 10px 16px; }
+.app-roadmap .summary-bar .metric .num { font-size: 20px; }
+.app-roadmap .toolbar { gap: 8px; }
+.app-roadmap #project-search { min-width: 0; flex: 1 1 120px; max-width: none; }
+.app-roadmap button { padding: 8px 12px; font-size: 12.5px; }
+.app-roadmap button.small { padding: 6px 10px; font-size: 11.5px; }
+.app-roadmap .modal { padding: 18px 16px 20px; }
+.app-roadmap .row2 { flex-wrap: wrap; }
+}
 </style>
 </head>
 <body>
+
+<div class="tabbar">
+  <button type="button" id="tab-btn-lista" class="active">Lista</button>
+  <button type="button" id="tab-btn-roadmap">Roadmap</button>
+</div>
+
+<div id="view-lista" class="view active app-lista">
 <div class="wrap">
   <h1>Project Tracker &mdash; ClassicRyde / AKI</h1>
   <p class="sub" id="subLine">Cargando...</p>
@@ -115,10 +431,11 @@
     </div>
     <select id="categoryFilter"><option value="all">Todas las categorias</option></select>
     <input id="searchBox" type="text" placeholder="Buscar proyecto, owner o nota...">
+    <label class="show-completed-toggle"><input type="checkbox" id="lista-show-completed"> Mostrar completados</label>
   </div>
 
   <div class="count-line" id="countLine"></div>
-  <div id="tableWrap" class="loading">Cargando data.json...</div>
+  <div id="tableWrap" class="loading">Cargando data-tracker.json...</div>
 </div>
 
 <div id="notesModal">
@@ -131,12 +448,192 @@
     <button class="close" type="button" onclick="closeNotes()">Cerrar</button>
   </div>
 </div>
+</div>
+
+<div id="view-roadmap" class="view app-roadmap">
+<div class="app">
+  <h1>Project Roadmap</h1>
+  <p class="subtitle">Datos en vivo del Project Tracker: cada proyecto es una burbuja con su fecha de Inicio y Entrega en la linea de tiempo. Solo lectura — para actualizar un proyecto, usa el Project Tracker.</p>
+
+  <div class="summary-bar">
+    <div class="metric"><span class="num" id="sum-pct">0%</span><span class="lbl">Company progress</span></div>
+    <div class="metric"><span class="num" id="sum-done">0/0</span><span class="lbl">Milestones completed</span></div>
+    <div class="metric"><span class="num" id="sum-projects">0</span><span class="lbl">Active projects</span></div>
+    <div class="metric"><span class="num" id="sum-ontime">—</span><span class="lbl">On-time deliveries</span></div>
+    <div class="metric"><span class="num" id="sum-goals">0/0</span><span class="lbl">Company goals</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="overdue-banner" id="overdue-banner"></div>
+
+  <!-- Everything lives on one compact row so the timeline below gets the most vertical space. -->
+  <div class="toolbar">
+    <div class="zoom-group">
+      <button class="secondary small" id="btn-zoom-out" title="Zoom out">−</button>
+      <span id="zoom-label">100%</span>
+      <button class="secondary small" id="btn-zoom-in" title="Zoom in">+</button>
+    </div>
+    <button class="secondary small" id="btn-zoom-fit">Fit all</button>
+    <button class="secondary small" id="btn-goto-today">Go to today</button>
+    <input type="text" id="project-search" placeholder="Search project, then Enter...">
+    <span class="toolbar-sep"></span>
+    <button class="secondary small" id="btn-toggle-legend">View color legend ▾</button>
+    <button class="secondary small" id="btn-toggle-upcoming">View upcoming steps ▾</button>
+    <span class="toolbar-sep"></span>
+    <label>Owner <select id="filter-owner"><option value="">All</option></select></label>
+    <label>Status <select id="filter-status">
+      <option value="">All</option>
+      <option value="green">Green</option>
+      <option value="yellow">Yellow</option>
+      <option value="red">Red</option>
+    </select></label>
+    <label>Priority <select id="filter-priority">
+      <option value="">All</option>
+      <option value="high">High</option>
+      <option value="medium">Medium</option>
+      <option value="low">Low</option>
+    </select></label>
+    <label><input type="checkbox" id="filter-hide-completed" checked> Hide completed</label>
+    <button class="secondary small" id="btn-clear-filters">Clear filters</button>
+    <span class="toolbar-sep"></span>
+    <button class="secondary small" id="btn-export-csv">Export CSV</button>
+    <button class="secondary small" id="btn-print">Print / PDF</button>
+  </div>
+
+  <div class="upcoming-panel" id="upcoming-panel">
+    <div id="upcoming-list"></div>
+  </div>
+
+  <div class="legend" id="legend-box">
+    <div class="legend-group">
+      <span class="legend-group-title">Project status</span>
+      <span class="item"><span class="dot" style="background:var(--green)"></span> Green: on time</span>
+      <span class="item"><span class="dot" style="background:var(--yellow)"></span> Yellow: milestone due within 14 days</span>
+      <span class="item"><span class="dot" style="background:var(--red)"></span> Red: has an overdue milestone</span>
+    </div>
+    <div class="legend-group">
+      <span class="legend-group-title">Markers</span>
+      <span class="item"><span class="dot" style="background:var(--orange)"></span> Orange: this milestone or goal is overdue</span>
+      <span class="item"><span class="dot" style="background:var(--blue)"></span> Blue: this milestone or goal was completed on time</span>
+    </div>
+    <div style="font-size:11px;color:var(--gray);padding:4px 0 2px;">All status is calculated automatically from dates. No one sets it by hand.</div>
+    <div class="legend-group">
+      <span class="legend-group-title">Priority</span>
+      <span class="item"><span class="flag" style="color:#1F2937">⚑</span> High</span>
+      <span class="item"><span class="flag" style="color:#64748B">⚑</span> Medium</span>
+      <span class="item"><span class="flag" style="color:#CBD5E1">⚑</span> Low</span>
+    </div>
+    <div class="legend-note">
+      <div class="item" style="display:flex;margin-bottom:5px;"><span class="diamond"></span>&nbsp;Diamond = project deadline on the timeline</div>
+      <div style="margin-bottom:5px;">Vertical dashed line = today's date</div>
+      <div style="margin-bottom:5px;">Arrow = this project depends on another</div>
+      <div>Click any bubble, milestone, or goal to view its detail (does not edit it)</div>
+    </div>
+  </div>
+
+  <div class="roadmap-viewport" id="roadmap-viewport">
+    <div class="diagram-pan" id="diagram-pan">
+      <div class="diagram-scale" id="diagram-scale">
+        <div id="diagram" class="diagram"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: company-wide goal info (read-only) -->
+<div class="overlay" id="overlay-goal-info">
+  <div class="modal">
+    <button class="close-x" data-close="overlay-goal-info">✕</button>
+    <div class="info-header">
+      <h2 id="goal-info-title" style="margin:0;">Goal</h2>
+      <span class="info-pill" id="goal-info-pill" style="background:#7C3AED;">Pending</span>
+    </div>
+    <div class="info-meta" id="goal-info-meta"></div>
+    <div id="goal-info-note" style="font-size:13px;color:#444;line-height:1.5;"></div>
+    <div class="modal-actions">
+      <span></span>
+      <button id="btn-edit-goal" class="edit-only" style="background:#7C3AED;">Edit goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: company-wide goal (independent of any project) -->
+<div class="overlay" id="overlay-goal">
+  <div class="modal">
+    <button class="close-x" data-close="overlay-goal">✕</button>
+    <h2 id="goal-modal-title">Company milestone</h2>
+    <div class="field"><label>Goal name</label><input type="text" id="g-name" placeholder='E.g. 95% trips completed'></div>
+    <div class="row2">
+      <div class="field"><label>Date</label><input type="date" id="g-date"></div>
+      <div class="field" style="display:flex;align-items:flex-end;gap:8px;padding-bottom:9px;">
+        <input type="checkbox" id="g-completed" style="width:18px;height:18px;">
+        <label style="margin:0;">Completed</label>
+      </div>
+    </div>
+    <div class="field"><label>Note (optional)</label><textarea id="g-note" placeholder="Detail or how it's measured"></textarea></div>
+    <div class="modal-actions">
+      <button class="danger" id="btn-delete-goal">Delete</button>
+      <button id="btn-save-goal">Save goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: project info (read-only) -->
+<div class="overlay" id="overlay-info">
+  <div class="modal">
+    <button class="close-x" data-close="overlay-info">✕</button>
+    <div class="info-header">
+      <h2 id="info-title" style="margin:0;">Project</h2>
+      <span style="display:flex;gap:6px;">
+        <span class="info-pill" id="info-priority-pill">Medium</span>
+        <span class="info-pill" id="info-status-pill">Green</span>
+      </span>
+    </div>
+    <div class="info-meta" id="info-meta"></div>
+    <div id="info-notes" style="display:none;background:#F4F6FB;border-radius:10px;padding:10px 12px;font-size:12.5px;color:#444;line-height:1.5;margin-bottom:12px;white-space:pre-wrap;"></div>
+
+    <h3 style="font-size:13px;color:var(--navy);margin:16px 0 4px;">Phases & milestones</h3>
+    <div id="info-phase-list"></div>
+
+    <h3 style="font-size:13px;color:var(--navy);margin:16px 0 4px;">Subprojects</h3>
+    <div id="info-subproj-list" style="font-size:12.5px;"></div>
+
+    <h3 style="font-size:13px;color:var(--navy);margin:16px 0 4px;">Dependencies</h3>
+    <div id="info-dep-list" style="font-size:12.5px;"></div>
+
+  </div>
+</div>
+
+<!-- Modal: new project -->
+<div class="overlay" id="overlay-new">
+  <div class="modal">
+    <button class="close-x" data-close="overlay-new">✕</button>
+    <h2>New project</h2>
+    <div class="field"><label>Project name</label><input type="text" id="n-name" placeholder="E.g. Driver app redesign"></div>
+    <div class="field"><label>Owner / requester</label><input type="text" id="n-owner" placeholder="E.g. Manuel"></div>
+    <div class="row2">
+      <div class="field"><label>Start date (Intake)</label><input type="date" id="n-start"></div>
+    </div>
+    <small class="hint">Status (Green/Yellow/Red) isn't chosen manually: it's calculated automatically from the milestone dates created below.</small>
+    <div class="field"><label>Priority</label>
+      <select id="n-priority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+    </div>
+    <small class="hint">5 starter milestones are created automatically (Intake, Definition & Planning, Execution, Follow-up, Closeout), spaced 2 weeks apart from the start date. The milestone with the furthest date becomes the deadline. You can rename, delete, or add milestones later from the project detail.</small>
+    <div class="modal-actions">
+      <span></span>
+      <button id="btn-create-project">Create project</button>
+    </div>
+  </div>
+</div>
+</div>
 
 <script>
+(function(){
 let allRows = [];
 let currentFilter = "all";
 let currentCategory = "all";
 let searchTerm = "";
+let listaShowCompleted = false;
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -254,6 +751,9 @@ function getFilteredRows() {
   } else if (currentFilter !== 'all') {
     rows = rows.filter(r => r.Status === currentFilter);
   }
+  if (!listaShowCompleted && currentFilter !== 'Completed') {
+    rows = rows.filter(r => r.Status !== 'Completed');
+  }
   if (currentCategory !== 'all') {
     rows = rows.filter(r => r.Category === currentCategory);
   }
@@ -274,8 +774,11 @@ function renderTable() {
   const today = new Date().toISOString().slice(0,10);
   const rows = getFilteredRows();
 
+  const hiddenCompleted = (!listaShowCompleted && currentFilter !== 'Completed')
+    ? allRows.filter(r => r.Status === 'Completed').length : 0;
   document.getElementById('countLine').textContent =
-    rows.length + ' de ' + allRows.length + ' proyectos';
+    rows.length + ' de ' + allRows.length + ' proyectos' +
+    (hiddenCompleted ? ' (' + hiddenCompleted + ' completados ocultos)' : '');
 
   if (!rows.length) {
     wrap.innerHTML = '<div class="empty">No hay proyectos que coincidan con este filtro.</div>';
@@ -340,9 +843,14 @@ document.getElementById('searchBox').addEventListener('input', (e) => {
   renderTable();
 });
 
+document.getElementById('lista-show-completed').addEventListener('change', (e) => {
+  listaShowCompleted = e.target.checked;
+  renderTable();
+});
+
 async function init() {
   try {
-    const res = await fetch('data.json', { cache: 'no-store' });
+    const res = await fetch('data-tracker.json', { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     allRows = (data.projects || []).map((r, i) => Object.assign({ __id: i }, r));
@@ -354,10 +862,1329 @@ async function init() {
     computeStats(allRows);
     renderTable();
   } catch (e) {
-    document.getElementById('tableWrap').innerHTML = '<div class="empty">Error cargando data.json: ' + escapeHtml(String((e && e.message) || e)) + '</div>';
+    document.getElementById('tableWrap').innerHTML = '<div class="empty">Error cargando data-tracker.json: ' + escapeHtml(String((e && e.message) || e)) + '</div>';
   }
 }
-init();
+window.__initLista = init;
+
+})();
 </script>
+
+<script>
+(function(){
+
+const PHASES = ["Intake", "Definition & Planning", "Execution", "Follow-up", "Closeout"];
+const STORAGE_KEY = "roadmapData_v2";
+let state = null;
+let editingProjectId = null;
+let editingGoalId = null;
+
+// ---- Live sync to the Google Sheet (deprecated 2026-07-27: the Roadmap Proyectos sheet
+// has been retired. Manuel decided the Project Tracker is now the single source of truth
+// for this roadmap, so this webhook is disabled to avoid writing to a sheet no one maintains
+// anymore. Edits made in this browser stay local only; to actually update a project, use the
+// Project Tracker artifact (chat-based updates) instead. ----
+const SYNC_URL = "";
+const SYNC_SECRET = "media2026";
+function syncToSheet(opOrOps) {
+  if (!SYNC_URL) return;
+  const body = Array.isArray(opOrOps)
+    ? { action: "batch", ops: opOrOps, secret: SYNC_SECRET }
+    : Object.assign({ secret: SYNC_SECRET }, opOrOps);
+  fetch(SYNC_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // avoids a CORS preflight against Apps Script
+    body: JSON.stringify(body)
+  }).catch(() => { /* offline or unreachable -- the local copy is already saved via save() */ });
+}
+
+// ---- Filters (owner / status / priority / hide completed) ----
+let filterOwner = "", filterStatus = "", filterPriority = "";
+let hideCompleted = true;
+function isProjectFullyCompleted(proj) {
+  return (proj.milestones || []).length > 0 && proj.milestones.every(m => m.completed);
+}
+function getVisibleProjects() {
+  return state.projects.filter(proj => {
+    if (filterOwner && (proj.owner || "") !== filterOwner) return false;
+    if (filterStatus && getProjectStatus(proj) !== filterStatus) return false;
+    if (filterPriority && proj.priority !== filterPriority) return false;
+    if (hideCompleted && isProjectFullyCompleted(proj)) return false;
+    return true;
+  });
+}
+
+// ---- Viewport zoom/pan state ----
+let zoomScale = 1;
+let panX = 0, panY = 0;
+let hasFitOnce = false;
+let userAdjustedView = false;
+let lastTotalW = 0, lastTotalH = 0, lastTodayX = 0, lastSpineY = 0;
+let lastPosOf = {};
+
+function uid(prefix) { return prefix + "_" + Math.random().toString(36).slice(2, 9); }
+
+// Defensive repair for dates coming from the Sheet/data.json. A milestone or goal with a
+// corrupted date (e.g. a full "Sat Sep 26 2026 03:00:00 GMT-0400..." string instead of
+// "2026-09-26") used to silently break the ENTIRE diagram: the timeline's min/max date range
+// turns into NaN and every position on the canvas collapses onto itself. This normalizes any
+// date-ish value to a clean "YYYY-MM-DD" once, at load time, so nothing downstream has to
+// worry about it. Returns `fallback` if the value can't be parsed as a date at all.
+function repairDateStr(v, fallback) {
+  if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
+  if (v === null || v === undefined || v === "") return fallback;
+  const d = new Date(v);
+  if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+  return fallback;
+}
+
+function sampleData() {
+  const addWeeks = (dateStr, w) => {
+    const d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + w * 14);
+    return d.toISOString().slice(0, 10);
+  };
+  function st(text, done) { return { id: uid("s"), text, done: !!done }; }
+  function sp(name, dueDate, completed, subtasks) { return { id: uid("sp"), name, dueDate, completed: !!completed, subtasks: subtasks || [] }; }
+  function makeProject(name, owner, status, start, completedCount, subtaskMap, lateAt, subprojects, priority) {
+    const pid = uid("p");
+    const milestones = PHASES.map((ph, i) => {
+      const date = addWeeks(start, i);
+      const completed = i < completedCount;
+      let completedAt = null;
+      if (completed) completedAt = (lateAt && lateAt[i]) ? lateAt[i] : date;
+      return { id: uid("m"), phase: ph, date, completed, completedAt, subtasks: (subtaskMap && subtaskMap[i]) ? subtaskMap[i] : [] };
+    });
+    return { id: pid, name, owner, priority: priority || "medium", milestones, subprojects: subprojects || [] };
+  }
+  const p1 = makeProject("Driver app redesign", "Manuel", "yellow", "2026-07-01", 3, {
+    2: [st("Update main screens", true), st("Pilot driver testing", false)]
+  }, { 2: "2026-08-05" }, [
+    sp("iOS app", "2026-07-01", true, [st("Publish to the App Store", true), st("Final QA", true)]),
+    sp("Android app", "2026-07-25", false, [st("Adjust tablet UI", false), st("Performance testing", false)])
+  ], "high"); // phase 3 was completed a few days late, to illustrate the metric
+  const p2 = makeProject("Summer campaign", "Marketing", "green", "2026-07-15", 4, {
+    2: [st("Record content", true), st("Schedule posts", true)]
+  }, null, null, "low");
+  const p3 = makeProject("CRM migration", "Operations", "red", "2026-08-01", 1, {
+    2: [st("Export current data", false), st("Map fields to new CRM", false), st("Validate duplicates", false)],
+    3: [st("Hire Account Manager", false)]
+  }, null, [
+    sp("Contacts module", "2026-07-05", false, [st("Export from old CRM", true), st("Import to new CRM", false), st("Validate duplicates", false)]),
+    sp("Billing module", "2026-09-15", false),
+    sp("Reports module", "2026-07-10", true)
+  ], "high");
+  const deps = [
+    { fromProjectId: p3.id, fromMilestoneId: p3.milestones[2].id, toProjectId: p1.id, toMilestoneId: p1.milestones[4].id }
+  ];
+  const goals = [
+    { id: uid("g"), name: "95% trips completed", date: "2026-09-30", completed: false, completedAt: null, note: "Quarterly operating goal, independent of active projects." },
+    { id: uid("g"), name: "Campaign close with 500 leads", date: "2026-08-20", completed: false, completedAt: null, note: "" }
+  ];
+  return { projects: [p1, p2, p3], dependencies: deps, goals };
+}
+
+function migrate(data) {
+  if (!Array.isArray(data.goals)) data.goals = [];
+  (data.projects || []).forEach(p => {
+    if (!p.priority) p.priority = "medium";
+    delete p.status; // status is no longer stored manually, it's calculated on the fly
+    if (typeof p.notes !== "string") p.notes = "";
+    p.milestones.forEach(m => {
+      if (!Array.isArray(m.subtasks)) {
+        m.subtasks = (m.note ? [{ id: uid("s"), text: m.note, done: false }] : []);
+      }
+      delete m.note;
+      if (!("completedAt" in m)) m.completedAt = null;
+      if (typeof m.comment !== "string") m.comment = "";
+      const fixedDate = repairDateStr(m.date, null);
+      if (fixedDate !== m.date) {
+        console.warn('Roadmap: repaired invalid milestone date for "' + (m.phase || m.id) + '" (' + p.name + '): ' + JSON.stringify(m.date) + " -> " + (fixedDate || todayISO()));
+        m.date = fixedDate || todayISO();
+      }
+    });
+    if (!Array.isArray(p.subprojects)) p.subprojects = [];
+    const ord = sortedMs(p);
+    const fallbackDue = ord.length ? ord[ord.length - 1].date : null;
+    p.subprojects.forEach(sp => {
+      if (!Array.isArray(sp.subtasks)) sp.subtasks = [];
+      if (!Array.isArray(sp.subprojects)) sp.subprojects = []; // subprojects of THIS subproject (one more level, the last one)
+      if (!("dueDate" in sp)) sp.dueDate = fallbackDue; // old data carried a manual "status"; it's calculated by date now
+      delete sp.status;
+      if (sp.dueDate) {
+        const fixedDue = repairDateStr(sp.dueDate, null);
+        if (fixedDue !== sp.dueDate) {
+          console.warn('Roadmap: repaired invalid subproject due date for "' + sp.name + '": ' + JSON.stringify(sp.dueDate) + " -> " + fixedDue);
+          sp.dueDate = fixedDue;
+        }
+      }
+      sp.subprojects.forEach(child => {
+        if (!Array.isArray(child.subtasks)) child.subtasks = [];
+        if (!("dueDate" in child)) child.dueDate = sp.dueDate;
+        if (child.dueDate) {
+          const fixedChildDue = repairDateStr(child.dueDate, null);
+          if (fixedChildDue !== child.dueDate) {
+            console.warn('Roadmap: repaired invalid nested subproject due date for "' + child.name + '": ' + JSON.stringify(child.dueDate) + " -> " + fixedChildDue);
+            child.dueDate = fixedChildDue;
+          }
+        }
+      });
+    });
+  });
+  data.goals.forEach(g => {
+    const fixedGoalDate = repairDateStr(g.date, null);
+    if (fixedGoalDate !== g.date) {
+      console.warn('Roadmap: repaired invalid goal date for "' + g.name + '": ' + JSON.stringify(g.date) + " -> " + (fixedGoalDate || todayISO()));
+      g.date = fixedGoalDate || todayISO();
+    }
+  });
+  return data;
+}
+
+// On load we always try "data-roadmap.json" first (the published snapshot that sits next
+// to the HTML on GitHub Pages) as the official version. If it doesn't exist or can't be read,
+// we fall back to whatever is in this browser (localStorage) and, if there's nothing there
+// either, sample data.
+async function load() {
+  try {
+    const res = await fetch("data-roadmap.json", { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.projects)) {
+        state = migrate(data);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return;
+      }
+    }
+  } catch (e) { /* no data-roadmap.json available: fall back to localStorage */ }
+
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) { try { state = migrate(JSON.parse(raw)); return; } catch (e) {} }
+  state = sampleData();
+  save();
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); render(); }
+
+function statusColor(status) {
+  return status === "green" ? "#16C784" : status === "yellow" ? "#FFB020" : "#FF4D5E";
+}
+function statusLabel(status) {
+  return status === "green" ? "On time" : status === "yellow" ? "At risk" : "Critical";
+}
+function priorityColor(priority) {
+  return priority === "high" ? "#1F2937" : priority === "low" ? "#CBD5E1" : "#64748B";
+}
+function priorityLabel(priority) {
+  return priority === "high" ? "High" : priority === "low" ? "Low" : "Medium";
+}
+function priorityTextColor(priority) {
+  return priority === "low" ? "#334155" : "#fff";
+}
+function statusGradient(status) {
+  return status === "green" ? "linear-gradient(135deg,#16C784,#0EA36A)"
+    : status === "yellow" ? "linear-gradient(135deg,#FFB020,#F08A00)"
+    : "linear-gradient(135deg,#FF4D5E,#E22B3D)";
+}
+
+// Status (green/yellow/red) is no longer assigned by hand by the PM: it's calculated
+// automatically from how close to or overdue milestones/dates are. "Due soon" window =
+// 14 days, the same cycle used between milestones by default.
+const SOON_WINDOW_DAYS = 14;
+function daysBetween(fromISO, toISO) {
+  const a = new Date(fromISO + "T00:00:00").getTime();
+  const b = new Date(toISO + "T00:00:00").getTime();
+  return Math.round((b - a) / (1000 * 60 * 60 * 24));
+}
+const STATUS_RANK = { green: 0, yellow: 1, red: 2 };
+function getOwnDateStatus(proj) {
+  const today = todayISO();
+  let hasOverdue = false, hasSoon = false;
+  (proj.milestones || []).forEach(m => {
+    if (m.completed) return;
+    if (m.date < today) hasOverdue = true;
+    else if (daysBetween(today, m.date) <= SOON_WINDOW_DAYS) hasSoon = true;
+  });
+  return hasOverdue ? "red" : hasSoon ? "yellow" : "green";
+}
+function getProjectStatus(proj, _visited) {
+  const visited = _visited || new Set();
+  if (visited.has(proj.id)) return "green"; // breaks dependency cycles
+  visited.add(proj.id);
+
+  let own = getOwnDateStatus(proj);
+  // If the project you depend on is red, you're also at risk (at least yellow), even if
+  // your own dates still look fine. Never downgrades below whatever rank you already have.
+  (state.dependencies || []).filter(d => d.fromProjectId === proj.id).forEach(d => {
+    const blocker = state.projects.find(p => p.id === d.toProjectId);
+    if (!blocker) return;
+    const blockerStatus = getProjectStatus(blocker, visited);
+    if (blockerStatus === "red" && STATUS_RANK[own] < STATUS_RANK.yellow) own = "yellow";
+  });
+  return own;
+}
+// For transparency with the PM: detects whether the status escalated only because of a
+// dependency (not because of its own dates), and which project the risk is coming from.
+function getDependencyEscalation(proj) {
+  const rawOwn = getOwnDateStatus(proj);
+  const finalStatus = getProjectStatus(proj);
+  if (STATUS_RANK[finalStatus] <= STATUS_RANK[rawOwn]) return null;
+  const blockerNames = (state.dependencies || [])
+    .filter(d => d.fromProjectId === proj.id)
+    .map(d => state.projects.find(p => p.id === d.toProjectId))
+    .filter(b => b && getProjectStatus(b) === "red")
+    .map(b => b.name);
+  return blockerNames.length ? blockerNames : null;
+}
+function getSubprojStatus(sp) {
+  if (sp.completed) return "green";
+  const today = todayISO();
+  if (!sp.dueDate) return "green";
+  if (sp.dueDate < today) return "red";
+  return daysBetween(today, sp.dueDate) <= SOON_WINDOW_DAYS ? "yellow" : "green";
+}
+
+function allMilestones() {
+  const list = [];
+  state.projects.forEach(p => p.milestones.forEach(m => list.push({ ...m, projectId: p.id })));
+  return list;
+}
+
+// Only the deadline (Entrega) milestone per project -- used for stats and for the
+// timeline's date range. "Inicio" (Start Date) isn't drawn on the roadmap and isn't
+// reliable enough in the Tracker to factor into progress stats or the visible date span;
+// counting it would double the milestone total with a date that always auto-completes.
+function deadlineMilestones() {
+  return state.projects.map(p => {
+    const ordered = sortedMs(p);
+    return { ...ordered[ordered.length - 1], projectId: p.id };
+  });
+}
+
+// Milestones can now be added/removed freely (not just the original 5 phases), so always
+// read/draw them in chronological order regardless of the order they were created in.
+function sortedMs(proj) {
+  return [...proj.milestones].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+}
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+function renderSummary() {
+  const ms = deadlineMilestones();
+  const done = ms.filter(m => m.completed).length;
+  const total = ms.length || 1;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById("sum-pct").textContent = pct + "%";
+  document.getElementById("sum-done").textContent = done + "/" + ms.length;
+  document.getElementById("sum-projects").textContent = state.projects.length;
+  document.getElementById("progress-fill").style.width = pct + "%";
+
+  const withTs = ms.filter(m => m.completed && m.completedAt);
+  const onTime = withTs.filter(m => m.completedAt <= m.date).length;
+  document.getElementById("sum-ontime").textContent = withTs.length ? Math.round((onTime / withTs.length) * 100) + "%" : "—";
+
+  const goals = state.goals || [];
+  const goalsDone = goals.filter(g => g.completed).length;
+  document.getElementById("sum-goals").textContent = goalsDone + "/" + goals.length;
+
+  renderOverdueBanner();
+  populateOwnerFilter();
+  renderUpcoming();
+}
+
+function renderUpcoming() {
+  const box = document.getElementById("upcoming-list");
+  if (!box) return;
+  const today = todayISO();
+  const items = [];
+  getVisibleProjects().forEach(proj => {
+    sortedMs(proj).forEach(m => {
+      if (!m.completed) items.push({ proj, m });
+    });
+  });
+  items.sort((a, b) => (a.m.date < b.m.date ? -1 : a.m.date > b.m.date ? 1 : 0));
+  const top = items.slice(0, 15);
+  if (top.length === 0) {
+    box.innerHTML = '<div class="info-empty" style="padding:12px 14px;">No pending milestones in the visible projects.</div>';
+    return;
+  }
+  box.innerHTML = "";
+  top.forEach(it => {
+    const overdue = it.m.date < today;
+    const days = daysBetween(today, it.m.date);
+    const tagLabel = overdue ? "Overdue" : days === 0 ? "Today" : days <= 14 ? "In " + days + " days" : "Scheduled";
+    const tagColor = overdue ? "#F97316" : days <= 14 ? "#FFB020" : "#94A3B8";
+    const row = document.createElement("div");
+    row.className = "upcoming-row";
+    row.innerHTML = `
+      <span class="up-date">${it.m.date}</span>
+      <span class="up-proj">${escapeHtml(it.proj.name)}</span>
+      <span class="up-phase">${escapeHtml(it.m.phase)}</span>
+      <span class="up-tag" style="background:${tagColor}">${tagLabel}</span>
+    `;
+    row.addEventListener("click", () => openInfo(it.proj.id));
+    box.appendChild(row);
+  });
+}
+
+document.getElementById("btn-toggle-upcoming").addEventListener("click", () => {
+  const box = document.getElementById("upcoming-panel");
+  const btn = document.getElementById("btn-toggle-upcoming");
+  const showing = box.classList.toggle("show");
+  btn.textContent = showing ? "Hide upcoming steps ▴" : "View upcoming steps ▾";
+});
+
+function populateOwnerFilter() {
+  const sel = document.getElementById("filter-owner");
+  if (!sel) return;
+  const current = sel.value;
+  const owners = Array.from(new Set(state.projects.map(p => p.owner || "").filter(Boolean))).sort();
+  sel.innerHTML = '<option value="">All</option>' + owners.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join("");
+  sel.value = owners.includes(current) ? current : "";
+}
+
+document.getElementById("filter-owner").addEventListener("change", e => { filterOwner = e.target.value; render(); });
+document.getElementById("filter-status").addEventListener("change", e => { filterStatus = e.target.value; render(); });
+document.getElementById("filter-priority").addEventListener("change", e => { filterPriority = e.target.value; render(); });
+document.getElementById("filter-hide-completed").addEventListener("change", e => { hideCompleted = e.target.checked; render(); });
+document.getElementById("btn-clear-filters").addEventListener("click", () => {
+  filterOwner = ""; filterStatus = ""; filterPriority = ""; hideCompleted = true;
+  document.getElementById("filter-owner").value = "";
+  document.getElementById("filter-status").value = "";
+  document.getElementById("filter-priority").value = "";
+  document.getElementById("filter-hide-completed").checked = true;
+  render();
+});
+
+document.getElementById("btn-toggle-legend").addEventListener("click", () => {
+  const box = document.getElementById("legend-box");
+  const btn = document.getElementById("btn-toggle-legend");
+  const showing = box.classList.toggle("show");
+  btn.textContent = showing ? "Hide color legend ▴" : "View color legend ▾";
+});
+
+function renderOverdueBanner() {
+  const banner = document.getElementById("overdue-banner");
+  const today = todayISO();
+  const items = [];
+  state.projects.forEach(p => {
+    const overdueMs = p.milestones.filter(m => !m.completed && m.date < today);
+    if (overdueMs.length) items.push({ type: "proj", id: p.id, label: p.name, count: overdueMs.length, phase: overdueMs[0].phase });
+  });
+  (state.goals || []).forEach(g => {
+    if (!g.completed && g.date < today) items.push({ type: "goal", id: g.id, label: g.name, count: 1, phase: null });
+  });
+  if (items.length === 0) {
+    banner.classList.remove("show");
+    banner.innerHTML = "";
+    return;
+  }
+  banner.classList.add("show");
+  banner.innerHTML =
+    '<div class="ov-header">⚠ ' + items.length + " item(s) overdue today</div>" +
+    '<ol class="ov-list">' +
+    items.map(it => `<li class="ov-link" data-type="${it.type}" data-id="${it.id}">${escapeHtml(it.label)}${it.phase ? ` <span class="ov-detail">(${it.count} overdue, since "${escapeHtml(it.phase)}")</span>` : ' <span class="ov-detail">(company goal)</span>'}</li>`).join("") +
+    "</ol>";
+  banner.querySelectorAll(".ov-link").forEach(el => {
+    el.addEventListener("click", () => {
+      if (el.dataset.type === "goal") openGoalInfo(el.dataset.id);
+      else openInfo(el.dataset.id);
+    });
+  });
+}
+
+// Distributes `count` items in an arc (petals) around (cx,cy), centered on baseAngleDeg,
+// spanning spreadDeg total, at a fixed distance `radius`. A single item sits exactly at
+// baseAngleDeg (no point spreading a fan of one). Angles are in the usual screen convention
+// (0deg = right, 90deg = down, -90deg = up).
+function fanPositions(cx, cy, baseAngleDeg, count, radius, spreadDeg) {
+  const out = [];
+  if (count <= 0) return out;
+  if (count === 1) {
+    const a = baseAngleDeg * Math.PI / 180;
+    out.push({ x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) });
+    return out;
+  }
+  const start = baseAngleDeg - spreadDeg / 2;
+  const step = spreadDeg / (count - 1);
+  for (let i = 0; i < count; i++) {
+    const a = (start + step * i) * Math.PI / 180;
+    out.push({ x: cx + radius * Math.cos(a), y: cy + radius * Math.sin(a) });
+  }
+  return out;
+}
+
+// Point on a circle's edge (radius r, centered at fromX/fromY) in the direction of (towardX,towardY).
+function pointTowardOnCircleEdge(fromX, fromY, towardX, towardY, r) {
+  const dx = towardX - fromX, dy = towardY - fromY;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  return { x: fromX + (dx / dist) * r, y: fromY + (dy / dist) * r };
+}
+// Point on an axis-aligned rectangle's edge (centered at cx0/cy0, given half-width/half-height)
+// in the direction of (towardX,towardY). Used so a connector line starts at the bubble's border
+// instead of cutting across the whole shape from its center.
+function pointOnRectEdge(cx0, cy0, halfW, halfH, towardX, towardY) {
+  const dx = towardX - cx0, dy = towardY - cy0;
+  if (dx === 0 && dy === 0) return { x: cx0, y: cy0 };
+  const t = 1 / Math.max(Math.abs(dx) / halfW, Math.abs(dy) / halfH);
+  return { x: cx0 + dx * t, y: cy0 + dy * t };
+}
+
+function render() {
+  renderSummary();
+  const diagram = document.getElementById("diagram");
+  diagram.innerHTML = "";
+
+  const projects = getVisibleProjects();
+
+  if (state.projects.length === 0 && (!state.goals || state.goals.length === 0)) {
+    diagram.innerHTML = '<div class="empty-note">No projects or goals yet. Use "+ New project" or "+ Add company milestone" to get started.</div>';
+    return;
+  }
+  if (projects.length === 0 && (!state.goals || state.goals.length === 0)) {
+    diagram.innerHTML = '<div class="empty-note">No projects match the current filter. <button class="link" id="btn-clear-filters-inline">Clear filters</button></div>';
+    const clearBtn = document.getElementById("btn-clear-filters-inline");
+    if (clearBtn) clearBtn.addEventListener("click", () => document.getElementById("btn-clear-filters").click());
+    return;
+  }
+
+  // More generous spacing than the original pass: wider day-to-pixel ratio so dates don't
+  // bunch up, and a bigger gap between the spine and the bubbles so the goal band (below)
+  // and future extra tiers (more projects/goals) have room without crowding anything.
+  const PX_PER_DAY = 9;
+  const H_PAD = 140;
+  const TIER_BASE = 165;
+  const TIER_STEP = 150; // must clear the bubble's full ~124px height (plus the badges that
+                          // poke a bit past its edges) so bubbles stacked on adjacent tiers,
+                          // close together in x, don't overlap at the corners.
+  const MIN_GAP = 260; // min horizontal distance between bubbles sharing a side+tier (wider than
+                        // before so two adjacent projects' subproject fans have room not to collide)
+  const GOAL_TAG_DIST = 78; // how far a goal's name tag sits from the spine (inside the TIER_BASE buffer)
+  const SP_RADIUS_1 = 170; // distance from a project to its (1st level) subprojects
+  const SP_RADIUS_2 = 100; // distance from a subproject to ITS subprojects (2nd/last level)
+  const BUBBLE_HALF_W = 100; // half of .bubble's 200px width, used so connector lines start at its edge, not its center
+  const BUBBLE_HALF_H = 62;  // approximate half-height of .bubble (name+meta+phases+badges)
+  const SUBPROJ_R = 52;      // half of .subproj-circle's 104px, used the same way
+  const SUBPROJ_R_NESTED = 39; // half of .subproj-circle-nested's 78px
+
+  // Only deadline dates set the visible date range -- Start Date/Inicio isn't drawn and
+  // isn't reliable in the Tracker, so a stray bad value there should never stretch or skew
+  // the timeline.
+  const ms = deadlineMilestones();
+  const todayT = new Date(todayISO() + "T00:00:00").getTime();
+  const goalDates = (state.goals || []).map(g => new Date(g.date + "T00:00:00").getTime());
+  const dates = [...ms.map(m => new Date(m.date + "T00:00:00").getTime()), ...goalDates, todayT];
+  let minD = Math.min(...dates), maxD = Math.max(...dates);
+  minD -= 1000 * 60 * 60 * 24 * 6;
+  maxD += 1000 * 60 * 60 * 24 * 6;
+  const timelineW = Math.max(560, ((maxD - minD) / (1000 * 60 * 60 * 24)) * PX_PER_DAY);
+  const totalW = H_PAD * 2 + timelineW;
+
+  function dateToX(dateStr) {
+    const t = new Date(dateStr + "T00:00:00").getTime();
+    return H_PAD + ((t - minD) / (maxD - minD)) * timelineW;
+  }
+
+  // Pass 1: assign each project a side (above/below) and a tier (stacking outward whenever
+  // it would overlap another bubble already placed on that side/tier).
+  const placed = { above: [], below: [] };
+  const posOf = {}; // projectId -> {x, side, tier, deadlineX}
+  let maxTierAbove = 0, maxTierBelow = 0;
+
+  function tierNeeded(side, bx) {
+    let tier = 0;
+    while (placed[side].some(p => p.tier === tier && Math.abs(p.x - bx) < MIN_GAP)) tier++;
+    return tier;
+  }
+
+  projects.forEach((proj, i) => {
+    const ordered = sortedMs(proj);
+    const deadline = ordered[ordered.length - 1];
+    const deadlineX = dateToX(deadline.date);
+    // The bubble sits directly above/below its own deadline (Entrega), not at the midpoint
+    // with the earliest milestone (Inicio). For Tracker-sourced projects, Inicio just mirrors
+    // Start Date -- often stale or not meaningful -- so averaging it in was dragging every
+    // bubble away from its real due date and toward wherever Start Date happened to fall,
+    // clumping everything near the middle of the timeline instead of spreading by deadline.
+    const bx = deadlineX;
+
+    // Pick whichever side is less crowded at this x (needs a lower tier), instead of
+    // alternating strictly by list order. Alternating by index could land several projects
+    // with nearby deadlines on the same side purely by coincidence of position in the list,
+    // forcing them into unnecessarily tall stacks while the other side had room. Ties (both
+    // sides equally free) still alternate by index so the diagram stays visually balanced.
+    const tAbove = tierNeeded("above", bx);
+    const tBelow = tierNeeded("below", bx);
+    let side, tier;
+    if (tAbove < tBelow) { side = "above"; tier = tAbove; }
+    else if (tBelow < tAbove) { side = "below"; tier = tBelow; }
+    else { side = i % 2 === 0 ? "above" : "below"; tier = tAbove; }
+
+    placed[side].push({ x: bx, tier });
+    if (side === "above") maxTierAbove = Math.max(maxTierAbove, tier); else maxTierBelow = Math.max(maxTierBelow, tier);
+    posOf[proj.id] = { x: bx, side, tier, deadlineX };
+  });
+
+  // Pass 2: now that we know how many tiers are needed, size the canvas and place the spine.
+  // The 90px base leaves room for the bubble's own height plus the task-count badge that pokes out above it.
+  // Sub-project chips extend further outward from whichever bubble has the most of them, so we
+  // pad both edges of the canvas enough to fit that regardless of which tier/side it lands on.
+  // Subprojects now fan out in an arc at a FIXED distance instead of stacking further out per
+  // item, so the extra space we need to reserve no longer grows with how many there are --
+  // just with whether there's a 2nd level (subprojects of subprojects) or not.
+  const hasAnySubprojects = projects.some(p => (p.subprojects || []).length > 0);
+  const hasAnyNestedSubprojects = projects.some(p => (p.subprojects || []).some(sp => (sp.subprojects || []).length > 0));
+  const subprojReach = hasAnySubprojects ? (SP_RADIUS_1 + (hasAnyNestedSubprojects ? SP_RADIUS_2 : 0) + 70) : 0;
+  const SPINE_Y = 90 + subprojReach + TIER_BASE + maxTierAbove * TIER_STEP;
+  const totalH = SPINE_Y + TIER_BASE + maxTierBelow * TIER_STEP + 130 + subprojReach;
+  projects.forEach(proj => {
+    const p = posOf[proj.id];
+    const dist = TIER_BASE + p.tier * TIER_STEP;
+    p.y = p.side === "above" ? SPINE_Y - dist : SPINE_Y + dist;
+    // each project's milestones ride a thin track hugging the spine (just outside its thick
+    // bar), offset a little more by tier so two concurrent projects don't draw dots on top of each other.
+    const trackDist = 22 + p.tier * 16;
+    p.trackY = p.side === "above" ? SPINE_Y - trackDist : SPINE_Y + trackDist;
+  });
+
+  diagram.style.width = totalW + "px";
+  diagram.style.height = totalH + "px";
+  lastTotalW = totalW; lastTotalH = totalH; lastSpineY = SPINE_Y; lastPosOf = posOf;
+
+  // spine
+  const spine = document.createElement("div");
+  spine.className = "spine";
+  spine.style.left = "20px";
+  spine.style.top = (SPINE_Y - 16) + "px";
+  spine.style.width = (totalW - 40) + "px";
+  diagram.appendChild(spine);
+
+  // month bands + labels
+  let cursor = new Date(minD);
+  cursor.setDate(1);
+  while (cursor.getTime() < maxD) {
+    const x = dateToX(cursor.toISOString().slice(0, 10));
+    // skip ticks that would fall before the canvas start (their label would get clipped on the left)
+    if (x >= 4) {
+      const band = document.createElement("div");
+      band.className = "month-band";
+      band.style.left = x + "px";
+      diagram.appendChild(band);
+      const lbl = document.createElement("div");
+      lbl.className = "month-lbl";
+      lbl.style.left = (x + 8) + "px";
+      lbl.style.top = (SPINE_Y + 14) + "px";
+      lbl.textContent = cursor.toLocaleDateString("en-US", { month: "long", year: "2-digit" });
+      diagram.appendChild(lbl);
+    }
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  // "today" marker
+  const todayX = dateToX(todayISO());
+  lastTodayX = todayX;
+  const todayLine = document.createElement("div");
+  todayLine.className = "today-marker";
+  todayLine.style.left = todayX + "px";
+  todayLine.style.height = totalH + "px";
+  diagram.appendChild(todayLine);
+  const todayLbl = document.createElement("div");
+  todayLbl.className = "today-lbl";
+  todayLbl.style.left = todayX + "px";
+  todayLbl.style.top = "2px";
+  todayLbl.textContent = "Today";
+  diagram.appendChild(todayLbl);
+
+  // SVG overlay: connector lines + dependency arrows (under bubbles)
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", totalW);
+  svg.setAttribute("height", totalH);
+  svg.style.position = "absolute";
+  svg.style.left = "0"; svg.style.top = "0";
+  svg.style.pointerEvents = "none";
+  const defs = document.createElementNS(svgNS, "defs");
+  defs.innerHTML = `<marker id="arrowhead" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+      <path d="M0,0 L7,3.5 L0,7 Z" fill="#7C8AB5"></path>
+    </marker>`;
+  svg.appendChild(defs);
+  diagram.appendChild(svg);
+
+  // connector from the bubble to its deadline (Entrega) on the spine. Inicio isn't drawn here
+  // at all -- its date is often stale/unreliable in the Tracker and wasn't adding anything a
+  // user could act on, just an extra line and dot next to the one that actually matters.
+  projects.forEach(proj => {
+    const p = posOf[proj.id];
+    const mx = p.deadlineX;
+    const line = document.createElementNS(svgNS, "path");
+    line.setAttribute("d", `M ${p.x} ${p.y} L ${mx} ${p.trackY}`);
+    line.setAttribute("stroke", statusColor(getProjectStatus(proj)));
+    line.setAttribute("stroke-width", "2.5");
+    line.setAttribute("stroke-dasharray", "1,6");
+    line.setAttribute("stroke-linecap", "round");
+    line.setAttribute("fill", "none");
+    line.setAttribute("opacity", "0.85");
+    svg.appendChild(line);
+  });
+
+  // dependency arrows between bubbles
+  (state.dependencies || []).forEach(dep => {
+    const a = posOf[dep.fromProjectId], b = posOf[dep.toProjectId];
+    if (!a || !b) return;
+    const midX = (a.x + b.x) / 2, midY = (a.y + b.y) / 2 - 46;
+    const path = document.createElementNS(svgNS, "path");
+    path.setAttribute("d", `M ${a.x} ${a.y} Q ${midX} ${midY}, ${b.x} ${b.y}`);
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke", "#7C8AB5");
+    path.setAttribute("stroke-width", "2.25");
+    path.setAttribute("stroke-dasharray", "7,5");
+    path.setAttribute("marker-end", "url(#arrowhead)");
+    svg.appendChild(path);
+  });
+
+  // Only the deadline (Entrega) gets a marker on the spine -- one diamond per project, no
+  // separate dot/line for Inicio. Its Start Date is still visible in the detail modal on
+  // click, it's just not reliable or useful enough to earn its own mark on the timeline.
+  const todayForMarkers = todayISO();
+  projects.forEach(proj => {
+    const p = posOf[proj.id];
+    const ordered = sortedMs(proj);
+    const m = ordered[ordered.length - 1];
+    const mx = p.deadlineX;
+    const overdue = !m.completed && m.date < todayForMarkers;
+
+    const node = document.createElement("div");
+    node.className = "deadline-node";
+    node.style.left = mx + "px";
+    node.style.top = p.trackY + "px";
+    node.style.background = m.completed ? statusColor(getProjectStatus(proj)) : (overdue ? "#F97316" : "#fff");
+    if (!m.completed && !overdue) node.style.border = "2.5px solid " + statusColor(getProjectStatus(proj));
+    node.title = proj.name + " — " + m.phase + " (" + m.date + ")" + (m.completed ? " — completed" : overdue ? " — overdue" : " — pending");
+    node.addEventListener("click", () => openInfo(proj.id));
+    diagram.appendChild(node);
+
+    // Subtask counts are never drawn as a floating marker on the spine itself -- with one
+    // diamond per project deadline plus its date tag already crowding that area, an extra
+    // numeric badge on every marker made the timeline unreadable. The count still shows on
+    // the bubble's corner badge and in the hover tooltip / detail modal, just not here.
+    if ((m.subtasks || []).length > 0) {
+      const doneS = m.subtasks.filter(s => s.done).length;
+      node.title += " — " + doneS + "/" + m.subtasks.length + " tasks";
+    }
+
+    const tag = document.createElement("div");
+    tag.className = "deadline-tag";
+    tag.style.left = mx + "px";
+    // the tag must sit further AWAY from the spine than the dot itself, never toward it
+    // (toward it is where the month/date axis lives, which is what was overlapping before).
+    tag.style.top = (p.side === "above" ? p.trackY - 34 : p.trackY + 14) + "px";
+    tag.style.background = statusColor(getProjectStatus(proj));
+    tag.textContent = m.date;
+    tag.style.cursor = "pointer";
+    tag.addEventListener("click", () => openInfo(proj.id));
+    diagram.appendChild(tag);
+  });
+
+  // project bubbles (on top)
+  const today = todayISO();
+  // Subproject connector lines are drawn into this SEPARATE overlay, appended to the diagram
+  // AFTER the bubbles/circles below so it paints on top of them. Drawing them into the earlier
+  // "svg" (used for the spine connectors/dependency arrows) put them fully underneath the
+  // opaque bubble and circle shapes, which -- given how close the two are -- hid the line
+  // completely instead of just running "behind" it a little.
+  const subLineSvg = document.createElementNS(svgNS, "svg");
+  subLineSvg.setAttribute("width", totalW);
+  subLineSvg.setAttribute("height", totalH);
+  subLineSvg.style.position = "absolute";
+  subLineSvg.style.left = "0"; subLineSvg.style.top = "0";
+  subLineSvg.style.pointerEvents = "none";
+  projects.forEach(proj => {
+    const p = posOf[proj.id];
+    const doneCount = proj.milestones.filter(m => m.completed).length;
+    const totalSub = proj.milestones.reduce((a, m) => a + (m.subtasks || []).length, 0);
+    const doneSub = proj.milestones.reduce((a, m) => a + (m.subtasks || []).filter(s => s.done).length, 0);
+    const overdueCount = proj.milestones.filter(m => !m.completed && m.date < today).length;
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.style.left = p.x + "px";
+    bubble.style.top = p.y + "px";
+    bubble.style.background = statusGradient(getProjectStatus(proj));
+    bubble.innerHTML = `
+      <div class="bname">${escapeHtml(proj.name)}</div>
+      <div class="bmeta">${escapeHtml(proj.owner || "")} &middot; ${doneCount}/${proj.milestones.length} milestones</div>
+      <div class="bphases">${sortedMs(proj).map(m => `<i class="${m.completed ? "done" : ""}" title="${escapeHtml(m.phase)}"></i>`).join("")}</div>
+      <div class="bbadges">
+        <div class="bstatus" style="color:${statusColor(getProjectStatus(proj))}">${statusLabel(getProjectStatus(proj))}</div>
+        <div class="bpriority" style="background:${priorityColor(proj.priority)};color:${priorityTextColor(proj.priority)}">${priorityLabel(proj.priority)}</div>
+      </div>
+      ${totalSub > 0 ? `<div class="btasks">${doneSub}/${totalSub} tasks</div>` : ""}
+      ${overdueCount > 0 ? `<div class="boverdue">⚠ ${overdueCount} overdue</div>` : ""}
+    `;
+    bubble.addEventListener("click", () => openInfo(proj.id));
+    diagram.appendChild(bubble);
+
+    // sub-projects: round bubbles with their name and status inside, fanned out around the
+    // parent like petals (rather than stacked straight out), each linked back to it by a line.
+    // Each subproject can in turn have its own subprojects (one more level), fanned out around
+    // IT, continuing further outward -- a small "star" of nested circles.
+    const subs = proj.subprojects || [];
+    const baseAngle = p.side === "above" ? -90 : 90;
+    // Narrower fan than before: wide angles were pushing subprojects toward the bubble's top
+    // corners (where the overdue/task-count badges live) and toward whichever neighboring
+    // project was fanning out its own subprojects in the same direction.
+    const spread1 = subs.length > 1 ? Math.min(90, 20 + subs.length * 18) : 0;
+    const positions1 = fanPositions(p.x, p.y, baseAngle, subs.length, SP_RADIUS_1, spread1);
+    subs.forEach((sp, si) => {
+      const { x: cx, y: cy } = positions1[si];
+      const color = statusColor(getSubprojStatus(sp));
+
+      const lineStart = pointOnRectEdge(p.x, p.y, BUBBLE_HALF_W, BUBBLE_HALF_H, cx, cy);
+      const lineEnd = pointTowardOnCircleEdge(cx, cy, p.x, p.y, SUBPROJ_R);
+      const line = document.createElementNS(svgNS, "line");
+      line.setAttribute("x1", lineStart.x);
+      line.setAttribute("y1", lineStart.y);
+      line.setAttribute("x2", lineEnd.x);
+      line.setAttribute("y2", lineEnd.y);
+      line.setAttribute("stroke", color);
+      line.setAttribute("stroke-width", "2.5");
+      line.setAttribute("stroke-dasharray", "5,5");
+      line.setAttribute("opacity", "0.75");
+      subLineSvg.appendChild(line);
+
+      const spTotal = (sp.subtasks || []).length;
+      const spDone = (sp.subtasks || []).filter(t => t.done).length;
+
+      const circle = document.createElement("div");
+      circle.className = "subproj-circle";
+      circle.style.left = cx + "px";
+      circle.style.top = cy + "px";
+      circle.innerHTML = `
+        <div class="subproj-face" style="background:${color}">
+          <div class="spn-name">${sp.completed ? "✓ " : ""}${escapeHtml(sp.name)}</div>
+          <div class="spn-status">${sp.completed ? "Completed" : statusLabel(getSubprojStatus(sp))}</div>
+        </div>
+        ${spTotal > 0 ? `<div class="sp-tasks">${spDone}/${spTotal}</div>` : ""}
+      `;
+      circle.title = sp.name + " — " + (sp.completed ? "completed" : statusLabel(getSubprojStatus(sp))) + (sp.dueDate ? " — due " + sp.dueDate : "") + (spTotal > 0 ? " — " + spDone + "/" + spTotal + " tasks" : "");
+      circle.addEventListener("click", ev => { ev.stopPropagation(); openInfo(proj.id); });
+      diagram.appendChild(circle);
+
+      // 2nd (last) level: this subproject's own subprojects, fanned out further outward
+      // continuing the same direction from the parent project through this subproject.
+      const children = sp.subprojects || [];
+      if (children.length) {
+        const outwardAngle = Math.atan2(cy - p.y, cx - p.x) * 180 / Math.PI;
+        const spread2 = children.length > 1 ? Math.min(80, 15 + children.length * 15) : 0;
+        const positions2 = fanPositions(cx, cy, outwardAngle, children.length, SP_RADIUS_2, spread2);
+        children.forEach((child, ci) => {
+          const { x: cx2, y: cy2 } = positions2[ci];
+          const color2 = statusColor(getSubprojStatus(child));
+
+          const line2Start = pointTowardOnCircleEdge(cx, cy, cx2, cy2, SUBPROJ_R);
+          const line2End = pointTowardOnCircleEdge(cx2, cy2, cx, cy, SUBPROJ_R_NESTED);
+          const line2 = document.createElementNS(svgNS, "line");
+          line2.setAttribute("x1", line2Start.x);
+          line2.setAttribute("y1", line2Start.y);
+          line2.setAttribute("x2", line2End.x);
+          line2.setAttribute("y2", line2End.y);
+          line2.setAttribute("stroke", color2);
+          line2.setAttribute("stroke-width", "2");
+          line2.setAttribute("stroke-dasharray", "4,4");
+          line2.setAttribute("opacity", "0.7");
+          subLineSvg.appendChild(line2);
+
+          const cTotal = (child.subtasks || []).length;
+          const cDone = (child.subtasks || []).filter(t => t.done).length;
+
+          const circle2 = document.createElement("div");
+          circle2.className = "subproj-circle subproj-circle-nested";
+          circle2.style.left = cx2 + "px";
+          circle2.style.top = cy2 + "px";
+          circle2.innerHTML = `
+            <div class="subproj-face" style="background:${color2}">
+              <div class="spn-name">${child.completed ? "✓ " : ""}${escapeHtml(child.name)}</div>
+              <div class="spn-status">${child.completed ? "Completed" : statusLabel(getSubprojStatus(child))}</div>
+            </div>
+            ${cTotal > 0 ? `<div class="sp-tasks">${cDone}/${cTotal}</div>` : ""}
+          `;
+          circle2.title = child.name + " — " + (child.completed ? "completed" : statusLabel(getSubprojStatus(child))) + (child.dueDate ? " — due " + child.dueDate : "") + (cTotal > 0 ? " — " + cDone + "/" + cTotal + " tasks" : "");
+          circle2.addEventListener("click", ev => { ev.stopPropagation(); openInfo(proj.id); });
+          diagram.appendChild(circle2);
+        });
+      }
+    });
+  });
+  diagram.appendChild(subLineSvg);
+
+  // company-wide goals: independent of any project. The star sits exactly on the spine;
+  // only its name tag floats off to the side, in the buffer band before bubbles start.
+  (state.goals || []).forEach((g, gi) => {
+    const gx = dateToX(g.date);
+    const overdue = !g.completed && g.date < today;
+    const stateClass = g.completed ? "done" : (overdue ? "overdue" : "");
+    const above = gi % 2 === 0;
+    const tagY = SPINE_Y + (above ? -1 : 1) * GOAL_TAG_DIST;
+
+    const stem = document.createElement("div");
+    stem.className = "goal-stem";
+    stem.style.left = (gx - 1) + "px";
+    stem.style.top = Math.min(SPINE_Y, tagY) + "px";
+    stem.style.height = Math.abs(tagY - SPINE_Y) + "px";
+    diagram.appendChild(stem);
+
+    const node = document.createElement("div");
+    node.className = "goal-node " + stateClass;
+    node.style.left = gx + "px";
+    node.style.top = SPINE_Y + "px";
+    node.textContent = "★";
+    node.title = g.name + " (" + g.date + ")" + (g.completed ? " — completed" : overdue ? " — overdue" : " — pending");
+    node.addEventListener("click", () => openGoalInfo(g.id));
+    diagram.appendChild(node);
+
+    const tag = document.createElement("div");
+    tag.className = "goal-tag " + stateClass;
+    tag.style.left = gx + "px";
+    tag.style.top = (above ? tagY - 12 : tagY + 2) + "px";
+    tag.textContent = g.name;
+    tag.style.cursor = "pointer";
+    tag.addEventListener("click", () => openGoalInfo(g.id));
+    diagram.appendChild(tag);
+  });
+
+  if (!hasFitOnce) {
+    fitToView();
+    hasFitOnce = true;
+  } else {
+    applyTransform();
+  }
+}
+
+// ---- Zoom / pan ----
+function applyTransform() {
+  const scaleEl = document.getElementById("diagram-scale");
+  const panEl = document.getElementById("diagram-pan");
+  if (!scaleEl || !panEl) return;
+  scaleEl.style.transform = "scale(" + zoomScale + ")";
+  panEl.style.transform = "translate(" + panX + "px," + panY + "px)";
+  document.getElementById("zoom-label").textContent = Math.round(zoomScale * 100) + "%";
+}
+
+function fitToView() {
+  const vp = document.getElementById("roadmap-viewport");
+  if (!vp || !lastTotalW || !lastTotalH) return;
+  const vw = vp.clientWidth - 20;
+  // Fit the timeline's WIDTH into view -- that's what actually needs to be seen end-to-end.
+  // Projects with several subprojects stack tall above/below the spine; forcing that full
+  // height into view too was shrinking everything down to ~45% and making it look tiny/far
+  // away. Instead we keep a much higher minimum zoom and center vertically on the spine
+  // (same idea "Go to today" already uses) -- any extra height beyond the frame is one drag/
+  // pan away, same as panning sideways along the timeline.
+  const scale = Math.max(0.65, Math.min(vw / lastTotalW, 1));
+  zoomScale = scale;
+  panX = Math.max(0, (vp.clientWidth - lastTotalW * scale) / 2);
+  panY = vp.clientHeight / 2 - lastSpineY * scale;
+  applyTransform();
+}
+
+function zoomBy(factor) {
+  userAdjustedView = true;
+  const vp = document.getElementById("roadmap-viewport");
+  const cx = vp.clientWidth / 2, cy = vp.clientHeight / 2;
+  // keep the point currently at the viewport center fixed while zooming
+  const contentX = (cx - panX) / zoomScale;
+  const contentY = (cy - panY) / zoomScale;
+  zoomScale = Math.max(0.15, Math.min(zoomScale * factor, 3));
+  panX = cx - contentX * zoomScale;
+  panY = cy - contentY * zoomScale;
+  applyTransform();
+}
+
+function centerOn(x, y, scale) {
+  const vp = document.getElementById("roadmap-viewport");
+  if (scale) zoomScale = scale;
+  panX = vp.clientWidth / 2 - x * zoomScale;
+  panY = vp.clientHeight / 2 - y * zoomScale;
+  applyTransform();
+}
+
+function flashHighlight(el) {
+  el.style.transition = "box-shadow .2s";
+  const orig = el.style.boxShadow;
+  let n = 0;
+  const iv = setInterval(() => {
+    el.style.boxShadow = (n % 2 === 0) ? "0 0 0 8px rgba(37,99,235,0.45)" : orig;
+    n++;
+    if (n > 5) { clearInterval(iv); el.style.boxShadow = orig; }
+  }, 220);
+}
+
+document.getElementById("btn-zoom-in").addEventListener("click", () => zoomBy(1.25));
+document.getElementById("btn-zoom-out").addEventListener("click", () => zoomBy(0.8));
+document.getElementById("btn-zoom-fit").addEventListener("click", () => { userAdjustedView = true; fitToView(); });
+document.getElementById("btn-goto-today").addEventListener("click", () => {
+  userAdjustedView = true;
+  centerOn(lastTodayX, lastSpineY);
+});
+
+document.getElementById("project-search").addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  const proj = state.projects.find(p => p.name.toLowerCase().includes(q));
+  if (!proj || !lastPosOf[proj.id]) { alert('No project found matching "' + e.target.value + '".'); return; }
+  userAdjustedView = true;
+  const p = lastPosOf[proj.id];
+  centerOn(p.x, p.y, 1);
+  const bubbles = document.querySelectorAll(".bubble");
+  bubbles.forEach(b => {
+    if (b.querySelector(".bname") && b.querySelector(".bname").textContent === proj.name) flashHighlight(b);
+  });
+});
+
+// drag-to-pan on the viewport (ignore drags starting on interactive elements)
+(function setupDragPan() {
+  const vp = document.getElementById("roadmap-viewport");
+  let dragging = false, startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+  vp.addEventListener("mousedown", e => {
+    if (e.target.closest(".bubble, .subproj-circle, .goal-node, .goal-tag, .deadline-node, .milestone-node, .deadline-tag")) return;
+    dragging = true; userAdjustedView = true;
+    startX = e.clientX; startY = e.clientY; startPanX = panX; startPanY = panY;
+    vp.classList.add("dragging");
+  });
+  window.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    panX = startPanX + (e.clientX - startX);
+    panY = startPanY + (e.clientY - startY);
+    applyTransform();
+  });
+  window.addEventListener("mouseup", () => { dragging = false; vp.classList.remove("dragging"); });
+
+  vp.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    if (e.target.closest(".bubble, .subproj-circle, .goal-node, .goal-tag, .deadline-node, .milestone-node, .deadline-tag")) return;
+    dragging = true; userAdjustedView = true;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY; startPanX = panX; startPanY = panY;
+  }, { passive: true });
+  vp.addEventListener("touchmove", e => {
+    if (!dragging || e.touches.length !== 1) return;
+    panX = startPanX + (e.touches[0].clientX - startX);
+    panY = startPanY + (e.touches[0].clientY - startY);
+    applyTransform();
+  }, { passive: true });
+  vp.addEventListener("touchend", () => { dragging = false; });
+
+  vp.addEventListener("wheel", e => {
+    if (!e.ctrlKey) return; // plain scroll left alone; ctrl+wheel (or pinch on trackpad) zooms
+    e.preventDefault();
+    zoomBy(e.deltaY < 0 ? 1.1 : 0.9);
+  }, { passive: false });
+})();
+
+window.addEventListener("resize", () => {
+  if (!userAdjustedView) fitToView();
+});
+
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// ---- Read-only info modal ----
+function openInfo(projectId) {
+  editingProjectId = projectId;
+  const proj = state.projects.find(p => p.id === projectId);
+
+  document.getElementById("info-title").textContent = proj.name;
+  const pill = document.getElementById("info-status-pill");
+  pill.textContent = statusLabel(getProjectStatus(proj)).toUpperCase();
+  pill.style.background = statusColor(getProjectStatus(proj));
+  const ppill = document.getElementById("info-priority-pill");
+  ppill.textContent = priorityLabel(proj.priority).toUpperCase();
+  ppill.style.background = priorityColor(proj.priority);
+  ppill.style.color = priorityTextColor(proj.priority);
+
+  const doneCount = proj.milestones.filter(m => m.completed).length;
+  const ordered = sortedMs(proj);
+  const deadline = ordered[ordered.length - 1];
+  document.getElementById("info-meta").textContent =
+    (proj.owner ? proj.owner + " · " : "") + doneCount + "/" + proj.milestones.length + " milestones completed · Deadline: " + deadline.date;
+  const notesBox = document.getElementById("info-notes");
+  if (proj.notes && proj.notes.trim()) {
+    notesBox.style.display = "block";
+    notesBox.textContent = proj.notes;
+  } else {
+    notesBox.style.display = "none";
+  }
+  const escalation = getDependencyEscalation(proj);
+  if (escalation) {
+    notesBox.style.display = "block";
+    const escText = "⚠ At risk due to dependency: " + escalation.join(", ") + " is in critical status.";
+    notesBox.textContent = notesBox.textContent ? escText + "\n\n" + notesBox.textContent : escText;
+  }
+
+  const phaseList = document.getElementById("info-phase-list");
+  const today = todayISO();
+  phaseList.innerHTML = "";
+  ordered.forEach(m => {
+    const isOverdue = !m.completed && m.date < today;
+    let dtText = "Planned: " + m.date;
+    if (m.completed && m.completedAt) {
+      const onTime = m.completedAt <= m.date;
+      dtText += " · Completed: " + m.completedAt + (onTime ? " (on time)" : " (late)");
+    } else if (isOverdue) {
+      dtText += " · overdue";
+    }
+    const row = document.createElement("div");
+    row.className = "info-phase-row";
+    row.innerHTML = `<div class="ic ${m.completed ? "" : "pending"}" style="background:${m.completed ? statusColor(getProjectStatus(proj)) : (isOverdue ? "#F97316" : "#E7E9F0")};color:${m.completed || isOverdue ? "#fff" : "#9AA4C0"};">${m.completed ? "✓" : (isOverdue ? "!" : "")}</div>
+      <div class="txt">${escapeHtml(m.phase)}</div>
+      <div class="dt">${dtText}</div>`;
+    phaseList.appendChild(row);
+    if ((m.subtasks || []).length > 0) {
+      const subList = document.createElement("div");
+      subList.className = "info-sub-list";
+      m.subtasks.forEach(s => {
+        const srow = document.createElement("div");
+        srow.className = "info-sub-row" + (s.done ? " done" : "");
+        srow.textContent = (s.done ? "✓ " : "○ ") + s.text;
+        subList.appendChild(srow);
+      });
+      phaseList.appendChild(subList);
+    }
+    if (m.comment && m.comment.trim()) {
+      const cRow = document.createElement("div");
+      cRow.style.cssText = "margin:2px 0 6px 30px;font-size:11.5px;color:#666;font-style:italic;white-space:pre-wrap;";
+      cRow.textContent = "💬 " + m.comment;
+      phaseList.appendChild(cRow);
+    }
+  });
+
+  const spBox = document.getElementById("info-subproj-list");
+  const subprojects = proj.subprojects || [];
+  if (subprojects.length === 0) {
+    spBox.innerHTML = '<div class="info-empty">No subprojects recorded.</div>';
+  } else {
+    spBox.innerHTML = "";
+    subprojects.forEach(sp => {
+      const spTotal = (sp.subtasks || []).length;
+      const spDone = (sp.subtasks || []).filter(t => t.done).length;
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "8px";
+      row.style.padding = "4px 0";
+      row.innerHTML = `<span class="dot" style="background:${statusColor(getSubprojStatus(sp))}"></span>
+        <span style="${sp.completed ? "text-decoration:line-through;color:#999;" : ""}">${escapeHtml(sp.name)}</span>
+        ${sp.dueDate ? `<span style="color:var(--gray);font-size:11px;">due ${sp.dueDate}</span>` : ""}
+        ${spTotal > 0 ? `<span style="color:var(--gray);font-size:11px;">${spDone}/${spTotal} tasks</span>` : ""}
+        ${sp.completed ? '<span style="color:#16C784;font-weight:700;font-size:11px;">completed</span>' : ""}`;
+      spBox.appendChild(row);
+      if (spTotal > 0) {
+        const subList = document.createElement("div");
+        subList.className = "info-sub-list";
+        sp.subtasks.forEach(t => {
+          const srow = document.createElement("div");
+          srow.className = "info-sub-row" + (t.done ? " done" : "");
+          srow.textContent = (t.done ? "✓ " : "○ ") + t.text;
+          subList.appendChild(srow);
+        });
+        spBox.appendChild(subList);
+      }
+      // nested subprojects (one more level), shown indented under their parent
+      (sp.subprojects || []).forEach(child => {
+        const cTotal = (child.subtasks || []).length;
+        const cDone = (child.subtasks || []).filter(t => t.done).length;
+        const crow = document.createElement("div");
+        crow.style.display = "flex";
+        crow.style.alignItems = "center";
+        crow.style.gap = "8px";
+        crow.style.padding = "4px 0 4px 22px";
+        crow.innerHTML = `<span class="dot" style="background:${statusColor(getSubprojStatus(child))}"></span>
+          <span style="${child.completed ? "text-decoration:line-through;color:#999;" : ""}">${escapeHtml(child.name)}</span>
+          ${child.dueDate ? `<span style="color:var(--gray);font-size:11px;">due ${child.dueDate}</span>` : ""}
+          ${cTotal > 0 ? `<span style="color:var(--gray);font-size:11px;">${cDone}/${cTotal} tasks</span>` : ""}
+          ${child.completed ? '<span style="color:#16C784;font-weight:700;font-size:11px;">completed</span>' : ""}`;
+        spBox.appendChild(crow);
+        if (cTotal > 0) {
+          const cSubList = document.createElement("div");
+          cSubList.className = "info-sub-list";
+          cSubList.style.marginLeft = "44px";
+          child.subtasks.forEach(t => {
+            const srow = document.createElement("div");
+            srow.className = "info-sub-row" + (t.done ? " done" : "");
+            srow.textContent = (t.done ? "✓ " : "○ ") + t.text;
+            cSubList.appendChild(srow);
+          });
+          spBox.appendChild(cSubList);
+        }
+      });
+    });
+  }
+
+  const depBox = document.getElementById("info-dep-list");
+  const deps = (state.dependencies || []).filter(d => d.fromProjectId === proj.id);
+  if (deps.length === 0) {
+    depBox.innerHTML = '<div class="info-empty">No dependencies recorded.</div>';
+  } else {
+    depBox.innerHTML = "";
+    deps.forEach(d => {
+      const toProj = state.projects.find(p => p.id === d.toProjectId);
+      const toMs = toProj ? toProj.milestones.find(m => m.id === d.toMilestoneId) : null;
+      const row = document.createElement("div");
+      row.style.padding = "4px 0";
+      row.innerHTML = `Depends on: <strong>${escapeHtml(toProj ? toProj.name : "?")}</strong> — ${escapeHtml(toMs ? toMs.phase : "?")}`;
+      depBox.appendChild(row);
+    });
+  }
+
+  document.getElementById("overlay-info").classList.add("open");
+}
+
+
+
+document.getElementById("btn-create-project").addEventListener("click", () => {
+  const name = document.getElementById("n-name").value.trim();
+  if (!name) { alert("Give the project a name."); return; }
+  const owner = document.getElementById("n-owner").value.trim();
+  const priority = document.getElementById("n-priority").value;
+  const start = document.getElementById("n-start").value || new Date().toISOString().slice(0, 10);
+
+  const addWeeks = (dateStr, w) => {
+    const d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + w * 14);
+    return d.toISOString().slice(0, 10);
+  };
+  const milestones = PHASES.map((ph, i) => ({ id: uid("m"), phase: ph, date: addWeeks(start, i), completed: false, completedAt: null, subtasks: [] }));
+  state.projects.push({ id: uid("p"), name, owner, priority, notes: "", milestones, subprojects: [] });
+  save();
+  document.getElementById("overlay-new").classList.remove("open");
+});
+
+// ---- Company-wide goals (independent of any project) ----
+function openGoalInfo(goalId) {
+  const g = (state.goals || []).find(x => x.id === goalId);
+  if (!g) return;
+  editingGoalId = goalId;
+  const today = todayISO();
+  const overdue = !g.completed && g.date < today;
+  document.getElementById("goal-info-title").textContent = g.name;
+  const pill = document.getElementById("goal-info-pill");
+  pill.textContent = g.completed ? "COMPLETED" : (overdue ? "OVERDUE" : "PENDING");
+  pill.style.background = g.completed ? "#16C784" : (overdue ? "#FF4D5E" : "#7C3AED");
+  document.getElementById("goal-info-meta").textContent =
+    "Date: " + g.date + (g.completed && g.completedAt ? " · Completed on: " + g.completedAt : "");
+  document.getElementById("goal-info-note").textContent = g.note || "No notes.";
+  document.getElementById("overlay-goal-info").classList.add("open");
+}
+
+document.getElementById("btn-edit-goal").addEventListener("click", () => {
+  document.getElementById("overlay-goal-info").classList.remove("open");
+  openGoalModal(editingGoalId);
+});
+
+function openGoalModal(goalId) {
+  editingGoalId = goalId || null;
+  const goal = goalId ? (state.goals || []).find(g => g.id === goalId) : null;
+  document.getElementById("goal-modal-title").textContent = goal ? "Edit company milestone" : "New company milestone";
+  document.getElementById("g-name").value = goal ? goal.name : "";
+  document.getElementById("g-date").value = goal ? goal.date : new Date().toISOString().slice(0, 10);
+  document.getElementById("g-completed").checked = goal ? !!goal.completed : false;
+  document.getElementById("g-note").value = goal ? (goal.note || "") : "";
+  document.getElementById("btn-delete-goal").style.display = goal ? "inline-block" : "none";
+  document.getElementById("overlay-goal").classList.add("open");
+}
+
+document.getElementById("btn-save-goal").addEventListener("click", () => {
+  const name = document.getElementById("g-name").value.trim();
+  if (!name) { alert("Give the goal a name."); return; }
+  const date = document.getElementById("g-date").value || todayISO();
+  const completed = document.getElementById("g-completed").checked;
+  const note = document.getElementById("g-note").value.trim();
+  state.goals = state.goals || [];
+  let savedGoal;
+  if (editingGoalId) {
+    const g = state.goals.find(x => x.id === editingGoalId);
+    if (g) {
+      const wasCompleted = g.completed;
+      g.name = name; g.date = date; g.completed = completed; g.note = note;
+      if (completed && !wasCompleted) g.completedAt = todayISO();
+      else if (!completed) g.completedAt = null;
+      savedGoal = g;
+    }
+  } else {
+    savedGoal = { id: uid("g"), name, date, completed, completedAt: completed ? todayISO() : null, note };
+    state.goals.push(savedGoal);
+  }
+  save();
+  if (savedGoal) syncToSheet({ type: "upsertGoal", id: savedGoal.id, name: savedGoal.name, date: savedGoal.date, completed: savedGoal.completed, note: savedGoal.note });
+  document.getElementById("overlay-goal").classList.remove("open");
+});
+
+document.getElementById("btn-delete-goal").addEventListener("click", () => {
+  if (!editingGoalId) return;
+  if (!confirm("Delete this company goal?")) return;
+  state.goals = (state.goals || []).filter(g => g.id !== editingGoalId);
+  save();
+  syncToSheet({ type: "deleteGoal", id: editingGoalId });
+  document.getElementById("overlay-goal").classList.remove("open");
+});
+
+document.querySelectorAll("[data-close]").forEach(btn => {
+  btn.addEventListener("click", () => document.getElementById(btn.dataset.close).classList.remove("open"));
+});
+document.querySelectorAll(".overlay").forEach(ov => {
+  ov.addEventListener("click", e => { if (e.target === ov) ov.classList.remove("open"); });
+});
+
+// ---- Export the KPI table as CSV ----
+function downloadBlob(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+function csvEscape(v) {
+  const s = String(v == null ? "" : v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+document.getElementById("btn-export-csv").addEventListener("click", () => {
+  const today = todayISO();
+  const rows = [["Project", "Owner", "Status", "Priority", "Progress %", "Milestones completed", "Deadline", "Overdue milestones"]];
+  getVisibleProjects().forEach(proj => {
+    const ordered = sortedMs(proj);
+    const deadline = ordered[ordered.length - 1];
+    const doneCount = proj.milestones.filter(m => m.completed).length;
+    const pct = Math.round((doneCount / proj.milestones.length) * 100);
+    const overdueCount = proj.milestones.filter(m => !m.completed && m.date < today).length;
+    rows.push([proj.name, proj.owner || "", statusLabel(getProjectStatus(proj)), priorityLabel(proj.priority), pct, doneCount + "/" + proj.milestones.length, deadline.date, overdueCount]);
+  });
+  const csv = rows.map(r => r.map(csvEscape).join(",")).join("\n");
+  downloadBlob(csv, "project_roadmap_" + today + ".csv", "text/csv;charset=utf-8;");
+});
+
+// ---- Print / PDF: uses the browser's native dialog with a print stylesheet ----
+document.getElementById("btn-print").addEventListener("click", () => window.print());
+window.__initRoadmap = function() { load().then(render); };
+})();
+</script>
+
+<script>
+(function(){
+  var listaInited = false, roadmapInited = false;
+  function showTab(tab) {
+    document.getElementById('tab-btn-lista').classList.toggle('active', tab === 'lista');
+    document.getElementById('tab-btn-roadmap').classList.toggle('active', tab === 'roadmap');
+    document.getElementById('view-lista').classList.toggle('active', tab === 'lista');
+    document.getElementById('view-roadmap').classList.toggle('active', tab === 'roadmap');
+    if (tab === 'lista' && !listaInited) { listaInited = true; window.__initLista(); }
+    if (tab === 'roadmap' && !roadmapInited) { roadmapInited = true; window.__initRoadmap(); }
+  }
+  document.getElementById('tab-btn-lista').addEventListener('click', function(){ showTab('lista'); });
+  document.getElementById('tab-btn-roadmap').addEventListener('click', function(){ showTab('roadmap'); });
+  showTab('lista');
+})();
+</script>
+
 </body>
 </html>
